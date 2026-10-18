@@ -1,0 +1,32 @@
+{
+  // FlowBoard SaaS: a separate Worker from the personal "flowboard" one.
+  // Deploy: deploy-saas.bat  (or: npx wrangler deploy -c wrangler.jsonc)
+  // Optional custom domain: add your zone to Cloudflare, then uncomment "routes" below.
+  "name": "flowboard-saas",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-01-01",
+  "assets": {
+    "directory": "./public"
+  },
+  "workers_dev": true,
+  // "routes": [
+  //   { "pattern": "your-domain.example", "custom_domain": true },
+  //   { "pattern": "www.your-domain.example", "custom_domain": true }
+  // ],
+  "vars": {
+    // This email is always admin (promoted on login or signup). Change it before deploying.
+    "ADMIN_EMAIL": "you@example.com",
+    // Resend "from" address. Verify your domain in Resend, or use onboarding@resend.dev for tests.
+    "FROM_EMAIL": "FlowBoard <noreply@your-domain.example>"
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "AUTH", "class_name": "Auth" },
+      { "name": "USER_BOARD", "class_name": "UserBoard" }
+    ]
+  },
+  "migrations": [
+    { "tag": "saas-v1", "new_sqlite_classes": ["Auth", "UserBoard"] }
+  ],
+  "observability": { "enabled": true }
+}

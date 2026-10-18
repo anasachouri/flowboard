@@ -1,0 +1,14 @@
+# secrets and local data, never commit these
+flowboard-key.txt
+flowboard-data.json
+flowboard-guests.json
+flowboard-backup*.json
+.dev.vars
+
+# generated deploy copies (recreated by the deploy scripts)
+public/
+saas/public/
+
+# tooling
+node_modules/
+.wrangler/

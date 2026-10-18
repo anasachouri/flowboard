@@ -1,0 +1,17 @@
+{
+  // FlowBoard online — deploy with: npx wrangler@latest deploy
+  "name": "flowboard",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-01-01",
+  "assets": {
+    "directory": "./public"
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "BOARD", "class_name": "Board" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["Board"] }
+  ]
+}
