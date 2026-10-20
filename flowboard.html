@@ -111,7 +111,25 @@ header h1.brand-text span{color:inherit}
 .cp-ctrls button.off{background:var(--danger);border-color:var(--danger);color:#fff}
 .cp-ctrls button.active{background:var(--accent);border-color:var(--accent);color:var(--accent-text)}
 #cp-hang{font-size:13px;font-weight:600}
-@media (max-width:640px){#callpanel{left:8px;right:8px;bottom:8px;width:auto;max-width:none}#cp-head{cursor:default}}
+@media (max-width:640px){
+  /* bottom sheet: never taller than the visible viewport, body areas scroll inside */
+  #callpanel{left:0;right:0;bottom:0;width:auto;max-width:none;border-radius:14px 14px 0 0;max-height:calc(100dvh - 8px);box-shadow:0 -6px 30px rgba(0,0,0,.3)}
+  #cp-head{cursor:default;padding:8px 6px 8px 12px}
+  #cp-status{display:none}
+  #cp-title{max-width:none;flex:1}
+  #cp-size{display:none}
+  .cp-videos{max-height:46dvh;overflow:hidden}
+  .cp-local{width:84px}
+  #cp-chat{height:auto;flex:1 1 auto;min-height:160px}
+  #callpanel.big #cp-chat{height:auto}
+  #cp-chatin{font-size:16px} /* stops iOS zooming into the field */
+  #cp-people{max-height:50dvh;overflow:auto}
+  #cp-plist{max-height:none}
+  .cp-ctrls{padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+  #callbanner{top:8px;left:8px;right:8px;transform:none;max-width:none;flex-wrap:wrap;justify-content:flex-end;padding:8px 10px}
+  #callbanner .cb-text{flex:1 1 100%}
+  @keyframes bannerin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+}
 #btn-chat{white-space:nowrap}
 #btn-chat.unread{border-color:var(--accent);color:var(--accent);font-weight:600}
 #callbanner{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:95;display:none;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--accent);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.3);padding:8px 10px 8px 14px;max-width:calc(100vw - 24px);animation:bannerin .25s ease-out}
@@ -150,6 +168,7 @@ header h1.brand-text span{color:inherit}
 .cp-ctrls .incall-only{display:none}
 #callpanel.incall .incall-only{display:inline-block}
 #callpanel.incall #cp-start{display:none}
+#callpanel:not(.incall) .cp-local{display:none}
 
 /* ---------- menu dropdown ---------- */
 .menu-wrap{position:relative}
@@ -205,6 +224,11 @@ body.dark .card:hover{box-shadow:0 3px 10px rgba(0,0,0,.45)}
 .badge.lbl{background:rgba(0,0,0,.18)}
 .card .timerbtn{position:absolute;top:5px;right:5px;border:none;background:rgba(0,0,0,.08);border-radius:5px;padding:1px 6px;font-size:12px;display:none}
 .card:hover .timerbtn{display:block}
+.card .movebtn{position:absolute;top:5px;right:30px;border:none;background:rgba(0,0,0,.08);border-radius:5px;padding:1px 7px;font-size:12px;display:none;color:inherit;opacity:.75;line-height:1.4}
+.card .movebtn:hover{opacity:1;background:rgba(0,0,0,.14)}
+.card:hover .movebtn{display:block}
+@media (pointer:coarse){.card .movebtn{display:block;right:34px;opacity:.55;padding:2px 9px;font-size:14px}}
+.movemenu .cur{color:var(--muted);pointer-events:none}
 .card.timing{outline:2px solid var(--danger)}
 .cardimg{width:100%;max-height:130px;object-fit:cover;border-radius:5px;margin-top:6px;display:block}
 .subprog{height:4px;border-radius:2px;background:rgba(0,0,0,.12);margin-top:6px;overflow:hidden}
@@ -222,6 +246,7 @@ body.dark .card:hover{box-shadow:0 3px 10px rgba(0,0,0,.45)}
 .frow label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
 #t-title{width:100%;font-size:16px;font-weight:600}
 #t-desc{width:100%;min-height:64px;resize:vertical}
+@media (max-width:640px){#t-desc{min-height:150px;font-size:16px}}
 .swatches{display:flex;gap:6px}
 .sw{width:24px;height:24px;border-radius:6px;border:2px solid transparent;cursor:pointer}
 .sw.sel{border-color:var(--text)}
@@ -287,6 +312,18 @@ h3.sec{font-size:13px;text-transform:uppercase;letter-spacing:.4px;color:var(--m
 .prow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .prow .sc{font-weight:700;min-width:38px;text-align:right}
 .focus-tag{background:#0d9488;color:#fff;font-size:10px;border-radius:4px;padding:1px 6px;font-weight:700}
+.prow .src{font-size:11px;color:var(--muted);white-space:nowrap}
+.card .badge.focus{background:#0d9488;color:#fff}
+.pgoal input{width:100%;margin-bottom:8px}
+.ptools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:4px 0 10px}
+.ptools .mut{font-size:12px;flex:1 1 200px}
+#p-duelbox{background:var(--cell);border-radius:10px;padding:12px;margin-bottom:12px}
+.duel{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:stretch;margin:8px 0 10px}
+.duel .dcard{cursor:pointer;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--panel);transition:border-color.15s,box-shadow.15s}
+.duel .dcard:hover{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}
+.duel .dcard .mut{font-size:11px;margin-top:4px}
+.duel .vs{align-self:center;color:var(--muted);font-size:12px}
+@media (max-width:640px){.duel{grid-template-columns:1fr}.duel .vs{text-align:center}}
 /* Admin console: stack identity + actions (never share a .prow ellipsis row with buttons) */
 #ov-admin .modal{width:min(620px,96vw);max-width:100%}
 #admin-list{display:flex;flex-direction:column;gap:10px;max-width:100%;min-width:0}
@@ -499,7 +536,7 @@ kbd{background:var(--chip);border:1px solid var(--border);border-radius:4px;padd
   </div>
   <div class="cp-videos cp-body">
     <div id="cp-grid" data-n="0"></div>
-    <div id="cp-empty">Not in a call yet.</div>
+    <div id="cp-empty"><span>Not in a call yet.</span></div>
     <div class="cp-local off"><video id="cp-local" autoplay muted playsinline></video><span class="cp-init" id="cp-local-init">?</span></div>
   </div>
   <div id="cp-chat" class="cp-body">
@@ -639,12 +676,21 @@ kbd{background:var(--chip);border:1px solid var(--border);border-radius:4px;padd
   <canvas id="c-thru" height="140"></canvas>
   <h3 class="sec">Time tracked: top tasks</h3>
   <canvas id="c-time" height="160"></canvas>
+  <h3 class="sec">Where the hours went (Pareto by label)</h3>
+  <canvas id="c-pareto" height="180"></canvas>
 </div></div>
 
 <!-- Pareto -->
 <div class="overlay" id="ov-pareto"><div class="modal">
   <h2>🎯 Pareto prioritisation<button class="ghost x" data-close>✕</button></h2>
-  <p class="mut">Tasks ranked by <b>impact ÷ effort</b>. The top ~20% (highlighted) likely deliver ~80% of the value. Start a pomodoro on a FOCUS task with ▶. Time from the timer shows next to each row and also feeds Analytics (whether or not you mark the task Done).</p>
+  <div class="pgoal"><label class="flabel" for="p-goal" style="margin-top:0">Goal for this board</label><input id="p-goal" placeholder="e.g. Close the pilot and raise the round by December" maxlength="200"></div>
+  <p class="mut">Ranked by <b>impact ÷ effort</b>. Impact is your score, a duel result or the AI's view, nudged up when a deadline is close. Effort is your score, else the estimate, else the actual time of similar finished tasks. The top 20% get a 🎯 on the board.</p>
+  <div class="ptools">
+    <button id="p-duel" title="Pick between two tasks a few times. The ranking learns from your choices.">⚔ Duel</button>
+    <button id="p-ai" title="Score every open task against the goal with an AI model running on Cloudflare">✨ AI rank</button>
+    <span id="p-note" class="mut"></span>
+  </div>
+  <div id="p-duelbox" style="display:none"></div>
   <div id="pareto-list"></div>
 </div></div>
 
@@ -723,7 +769,7 @@ kbd{background:var(--chip);border:1px solid var(--border);border-radius:4px;padd
   <p><b>Recurring:</b> set Repeat on a task. When you move it to a Done column, a fresh copy reappears in the first column with the due date advanced.</p>
   <p><b>Collaboration:</b> the easiest way is invite links (see below). There is also file-based sync. Put a sync file in a shared folder (Dropbox / Google Drive / OneDrive) via ⋯ → <b>Create shared sync file…</b> and have friends use <b>Join existing sync file…</b> to pick the same file. It is last-save-wins (not simultaneous live editing) and it needs Chrome or Edge. All boards are shared in that mode.</p>
   <p><b>Deadlines in your calendar 📆:</b> ⋯ → "Deadlines → calendar" downloads an.ics file of every open task with a due date (import it into any calendar app). If you use the online (Cloudflare) version, you also get a live subscription URL. In Google Calendar go to Settings → Add calendar → From URL and paste it. Do that in whichever Google account you want the deadlines in (work, personal, or both). Each account you add it to stays automatically up to date.</p>
-  <p><b>Pareto 🎯:</b> set impact & effort on tasks, then the Pareto view ranks the best value-for-effort work.</p>
+  <p><b>Pareto 🎯:</b> ranks open tasks by impact ÷ effort and marks the top 20% with 🎯 on their cards. You can score tasks yourself, but you don't have to: effort falls back to the estimate or to the actual time of similar finished tasks, impact gets a nudge from a close deadline, <b>⚔ Duel</b> asks "which matters more?" a few times and learns a ranking from your answers, and <b>✨ AI rank</b> scores every open task against the goal you type at the top (a model on Cloudflare, called only when you click, nothing stored). Column menu ⌄ → <b>Sort by value</b> reorders a column by the same score. Analytics shows a true Pareto chart of where your tracked hours went.</p>
   <p><b>Members & assignees 👥:</b> add people in ⋯ → Board members (simple name tags, no accounts). Assign them to tasks in the task dialog. Their initials show on cards, and the header dropdown filters by person.</p>
   <p><b>Inviting friends 🔗:</b> switch to the board you want to share, then ⋯ → Board members → Invite links. Type a friend's name and click "Create invite link". They get their own private link (your key is never shared) with access to <b>that board only</b>. Your other boards stay invisible to them, on screen and on the server. Revoke any link at any time. It stops working within seconds without affecting anyone else.</p>
   <p><b>Video calls 📹:</b> on a live-synced board, click 📹 in the header, then <b>Start call</b>. Everyone else who has the board open gets a ring, a banner with <b>Join</b> / <b>Not now</b>, and a pulsing 📹 button. The 👥 tab shows who is on the board (in call, online, away) with <b>Copy call link</b>: send that link on WhatsApp or email and it opens the board with a Join banner. On a SaaS deploy there is also <b>Email invite</b> for board members. Audio and video travel directly between your browsers (WebRTC), nothing is recorded or stored. Drag the window anywhere, collapse it and keep working on the board together, share your screen with 🖥, or double-click a video for full screen. If a connection stays on "connecting" or shows "failed", one of you is behind a strict network: the board owner can add Cloudflare TURN keys (see README).</p>
@@ -1373,6 +1419,7 @@ function renderLabelFilter(){
 }
 function renderBoard(){
   const b=$('#board');
+  computeFocus();
   /* freeze-proofing: remember where the user is before rebuilding, restore after */
   const bw=$('#boardwrap');
   const keepX=bw?bw.scrollLeft:0;
@@ -1506,6 +1553,7 @@ function cardEl(t){
     card.append(im);
   }
   const badges=el('div',{class:'badges'});
+  if(focusIds.has(t.id))badges.append(el('span',{class:'badge focus',text:'🎯',title:'FOCUS: top 20% by impact ÷ effort'}));
   const di=dueInfo(t);
   if(di)badges.append(el('span',{class:'badge '+di.cls,text:'📅 '+di.label}));
   if(t.desc&&t.desc.trim())badges.append(el('span',{class:'badge',text:'📝',title:'Has a description'}));
@@ -1523,6 +1571,7 @@ function cardEl(t){
   }
   /* No pomodoro on terminal columns (Done / Cancelled / any "Counts as Done") */
   if(!isTaskDone(t)){
+    if(!editMode&&board.columns.length>1)card.append(el('button',{class:'movebtn',text:'→',title:'Move to another column',onclick:e=>{e.stopPropagation();moveMenu(e,t);}}));
     card.append(el('button',{class:'timerbtn',text:isActive?'●':'▶',
       title:isActive?'Timing this task':(tm&&tm.running?'Switch timer here (banks time on current task)':'Start pomodoro on this task'),
       onclick:e=>{e.stopPropagation();attachTimer(t.id);}}));
@@ -1675,6 +1724,35 @@ function moveTask(id,colId,laneId,beforeId){
   save();renderBoard();renderPomo();
 }
 
+function isLastInCell(t){
+  const cell=board.tasks.filter(x=>x.colId===t.colId&&x.laneId===t.laneId);
+  return cell.length<2||cell[cell.length-1].id===t.id;
+}
+function moveMenu(e,t){
+  e.stopPropagation();
+  $$('.dropdown.movemenu').forEach(d=>d.remove());
+  const r=e.currentTarget.getBoundingClientRect();
+  const dd=el('div',{class:'dropdown movemenu open',style:'position:fixed;min-width:180px;left:'+Math.max(8,Math.min(r.right-180,innerWidth-190))+'px;top:'+Math.min(r.bottom+4,innerHeight-60)+'px'});
+  const openedAt=Date.now();
+  const away=ev=>{if(dd.contains(ev.target)||Date.now()-openedAt<350)return;close();};
+  const close=()=>{dd.remove();document.removeEventListener('pointerdown',away,true);document.removeEventListener('click',away,true);};
+  dd.append(el('div',{class:'menu-label',text:'Move to'}));
+  board.columns.forEach(c=>{
+    if(c.id===t.colId){dd.append(el('button',{class:'cur',text:'✓ '+c.name}));return;}
+    dd.append(el('button',{text:(c.done?'✔ ':'')+c.name,onclick:ev=>{ev.stopPropagation();close();moveTask(t.id,c.id,t.laneId,null);}}));
+  });
+  if(!isLastInCell(t)){dd.append(el('hr'));dd.append(el('button',{text:'⤓ Bottom of this column',onclick:ev=>{ev.stopPropagation();close();moveTaskToBottom(t.id);}}));}
+  document.body.append(dd);
+  /* keep it on screen if it would run past the bottom edge */
+  requestAnimationFrame(()=>{const b=dd.getBoundingClientRect();if(b.bottom>innerHeight-8)dd.style.top=Math.max(8,innerHeight-8-b.height)+'px';});
+  /* close on the next press outside (a tap's delayed click must not close it straight away) */
+  setTimeout(()=>{document.addEventListener('pointerdown',away,true);document.addEventListener('click',away,true);},0);
+}
+function moveTaskToBottom(id){
+  const t=board.tasks.find(x=>x.id===id);if(!t||isLastInCell(t))return;
+  moveTask(id,t.colId,t.laneId,null); /* no target, same cell: lands at the end */
+}
+
 /* ================= columns & lanes ================= */
 function colMenu(e,c,i){
   e.stopPropagation();
@@ -1682,6 +1760,7 @@ function colMenu(e,c,i){
     ['✎ Rename',()=>{const n=prompt('Column name',c.name);if(n){c.name=n;done();}}],
     ['⚡ WIP limit: '+(c.wip||'none'),()=>{const n=prompt('WIP limit (0 = none)',c.wip);if(n!==null){c.wip=Math.max(0,parseInt(n)||0);done();}}],
     [(c.done?'☑':'☐')+' Counts as Done',()=>{c.done=!c.done;done();}],
+    ...(c.done?[]:[['🎯 Sort by value',()=>{sortColumnByValue(c.id);dd.remove();}]]),
     ['◀ Move left',()=>{if(i>0){board.columns.splice(i,1);board.columns.splice(i-1,0,c);done();}}],
     ['▶ Move right',()=>{if(i<board.columns.length-1){board.columns.splice(i,1);board.columns.splice(i+1,0,c);done();}}],
     ['🗄 Archive all tasks here',()=>{const ts=board.tasks.filter(t=>t.colId===c.id);ts.forEach(t=>board.archive.push(t));board.tasks=board.tasks.filter(t=>t.colId!==c.id);done();}],
@@ -1716,7 +1795,7 @@ function openTask(id,colId,laneId){
   editing={task:t,isNew:!id,prevAssignees:[...(t.assignees||[])]};
   trackFeature(id?'task_open':'task_create');
   $('#t-heading').textContent=id?'Edit task':'New task';
-  $('#t-title').value=t.title;$('#t-desc').value=t.desc;
+  $('#t-title').value=t.title;$('#t-desc').value=t.desc;setTimeout(autosizeDesc,0);
   $('#t-due').value=t.due;$('#t-est').value=t.est||'';
   $('#t-impact').value=t.impact||3;$('#t-effort').value=t.effort||3;
   $('#t-recur').value=t.recur||'';
@@ -1768,7 +1847,7 @@ function taskModalDirty(){
   }
   const cur={
     title:$('#t-title').value,desc:$('#t-desc').value,due:$('#t-due').value,
-    est:parseInt($('#t-est').value)||0,impact:+$('#t-impact').value,effort:+$('#t-effort').value,
+    est:parseInt($('#t-est').value)||0,impact:+$('#t-impact').value,effort:+$('#t-effort').value,impactSet:+$('#t-impact').value!==3,effortSet:+$('#t-effort').value!==3,
     recur:$('#t-recur').value,colId:$('#t-col').value||t.colId,laneId:$('#t-lane').value||t.laneId,
     labels:[...(t.labels||[])].slice().sort(),
     assignees:[...(t.assignees||[])].slice().sort(),
@@ -1781,6 +1860,12 @@ function commitTaskModal(){
   if(!editing)return;
   if(taskModalDirty())saveTaskModal();
   else closeOv();
+}
+function autosizeDesc(){
+  /* phones: let the notes box grow with the text instead of scrolling inside a small box */
+  const d=$('#t-desc');if(!d||innerWidth>640)return;
+  d.style.height='auto';
+  d.style.height=Math.min(Math.round(innerHeight*0.5),Math.max(150,d.scrollHeight+4))+'px';
 }
 function renderDescLinks(){
   const w=$('#t-links');if(!w)return;
@@ -1821,18 +1906,32 @@ function renderSubs(t){
   t.subtasks.forEach(s=>{
     const row=el('div',{class:'subtask'+(s.done?' done':'')},
       el('input',{type:'checkbox',onchange:e=>{s.done=e.target.checked;renderSubs(t);}}),
-      el('span',{class:'stxt',text:s.text,style:'flex:1'}),
+      el('span',{class:'stxt',text:s.text,style:'flex:1;cursor:text',title:'Click to edit',onclick:()=>editSub(t,s,row)}),
       el('button',{class:'ghost',text:'✕',onclick:()=>{t.subtasks.splice(t.subtasks.indexOf(s),1);renderSubs(t);}}));
     row.querySelector('input').checked=s.done;
     w.append(row);
   });
+}
+function editSub(t,s,row){
+  const span=row.querySelector('.stxt');
+  if(!span||row.querySelector('input.sub-edit'))return;
+  const inp=el('input',{type:'text',class:'sub-edit',value:s.text,style:'flex:1;min-width:0'});
+  let finished=false;
+  const finish=commit=>{if(finished)return;finished=true;const v=inp.value.trim();if(commit&&v)s.text=v;renderSubs(t);};
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();e.stopPropagation();finish(true);}
+    else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();finish(false);}
+  });
+  inp.addEventListener('blur',()=>finish(true));
+  span.replaceWith(inp);inp.focus();inp.select();
 }
 function saveTaskModal(){
   const t=editing.task;
   t.title=$('#t-title').value.trim()||'Untitled';
   t.desc=$('#t-desc').value;t.due=$('#t-due').value;
   t.est=parseInt($('#t-est').value)||0;
-  t.impact=+$('#t-impact').value;t.effort=+$('#t-effort').value;
+  if(editing.impactTouched){t.impact=+$('#t-impact').value;t.impactSet=true;t.impactDuel=false;t.impactAi=false;delete t.elo;}
+  if(editing.effortTouched){t.effort=+$('#t-effort').value;t.effortSet=true;t.effortAi=false;}
   t.recur=$('#t-recur').value;
   const newCol=$('#t-col').value||t.colId,newLane=$('#t-lane').value||t.laneId;
   if(editing.isNew){
@@ -2203,14 +2302,14 @@ function updateCallBtn(){
   if(call){
     b.classList.add('live');
     const n=call.pcs.size;
-    b.textContent='📹 In call'+(n?' · '+(n+1):'');
+    b.textContent=innerWidth<=640?('📹 '+(n+1)):('📹 In call'+(n?' · '+(n+1):''));
     b.title='You are in a call. Click to show or hide the call window';
     return;
   }
   const names=callRingers.map(p=>p.name||'Someone');
   if(names.length){
     b.classList.add('ring');
-    b.textContent='📹 Join '+names[0]+(names.length>1?' +'+(names.length-1):'');
+    b.textContent=innerWidth<=640?'📹 Join':('📹 Join '+names[0]+(names.length>1?' +'+(names.length-1):''));
     b.title=names.join(', ')+(names.length>1?' are':' is')+' in a video call on this board. Click to join';
   }else{
     b.textContent='📹';
@@ -2596,7 +2695,7 @@ function renderCallStatus(){
   const wsOpen=!!(room&&room.ws&&room.ws.readyState===1);
   if(!call){
     setCallStatus(wsOpen?(roomPeople.some(p=>p.inCall)?'A call is on, join it':'Not in a call'):'Connecting…');
-    if(ph){ph.style.display='';ph.innerHTML='';ph.append('Not in a call yet.',el('br'),'Start one and everyone online on this board gets rung.');}
+    if(ph){ph.style.display='';ph.innerHTML='';ph.append(el('span',{},'Not in a call yet.',el('br'),'Start one and everyone online on this board gets rung.'));}
     const grid=$('#cp-grid');if(grid)grid.dataset.n='0';
     updateCallBtn();
     return;
@@ -2610,7 +2709,7 @@ function renderCallStatus(){
   const grid=$('#cp-grid');if(grid)grid.dataset.n=String(peers.filter(P=>P.el).length);
   if(ph){
     ph.style.display=peers.some(P=>P.el)?'none':'';
-    ph.innerHTML='';ph.append('Waiting for someone to join…',el('br'),'Everyone on this board sees a ',el('b',{text:'Join'}),' banner. Away? Send them the call link from 👥.');
+    ph.innerHTML='';ph.append(el('span',{},'Waiting for someone to join…',el('br'),'Everyone on this board sees a ',el('b',{text:'Join'}),' banner. Away? Send them the call link from 👥.'));
   }
   updateCallBtn();
 }
@@ -2696,6 +2795,7 @@ function onChatBtn(){
   else showCallPanel('chat');
 }
 function initCallPanelDrag(){
+  initViewportFit();
   const p=callPanel(),h=$('#cp-head');if(!p||!h)return;
   let drag=false,sx=0,sy=0,sl=0,st=0;
   h.addEventListener('pointerdown',e=>{
@@ -2713,6 +2813,19 @@ function initCallPanelDrag(){
   });
   const up=()=>{drag=false;};
   h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
+}
+function initViewportFit(){
+  const vv=window.visualViewport;if(!vv)return;
+  const fit=()=>{
+    const p=callPanel();if(!p)return;
+    if(innerWidth>640||p.classList.contains('hidden')){p.style.maxHeight='';p.style.bottom='';return;}
+    const hidden=Math.max(0,innerHeight-vv.height-vv.offsetTop);
+    p.style.bottom=hidden+'px';
+    p.style.maxHeight=Math.max(160,vv.height-8)+'px';
+  };
+  vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit);
+  window.addEventListener('resize',fit);
+  const mo=new MutationObserver(fit);const p=callPanel();if(p)mo.observe(p,{attributes:true,attributeFilter:['class']});
 }
 
 /* ================= recurring ================= */
@@ -2744,7 +2857,7 @@ function openAnalytics(){
   $('#a-stats').innerHTML='';
   [[open,'open tasks'],[done7,'done last 7 days'],[fmtMin(week),'tracked last 7 days'],[overdue,'overdue']].forEach(([v,l])=>
     $('#a-stats').append(el('div',{class:'stat'},el('b',{text:String(v)}),el('span',{text:l}))));
-  drawCFD();drawThroughput();drawTimeChart();
+  drawCFD();drawThroughput();drawTimeChart();drawParetoChart();
   openOv('#ov-analytics');
 }
 function setupCanvas(id){
@@ -2813,25 +2926,199 @@ function drawTimeChart(){
 }
 
 /* ================= pareto ================= */
+/* Score = impact ÷ effort. Every input falls back to data you already have, so the ranking works
+   before you score anything: effort from the estimate or from similar finished tasks, impact from
+   duels or the AI, and a nudge from the due date (cost of delay). */
+function isDoneCol(colId){return !!(board.columns.find(c=>c.id===colId)||{}).done;}
+function effortBucket(mins){return mins<=25?1:mins<=60?2:mins<=150?3:mins<=300?4:5;}
+function labelMedianMinutes(t){
+  if(!t.labels||!t.labels.length)return 0;
+  const pool=board.tasks.concat(board.archive||[]).filter(x=>x!==t&&x.doneAt&&(x.labels||[]).some(l=>t.labels.includes(l)));
+  const mins=pool.map(x=>Math.round(taskTime(x)/60)).filter(m=>m>0).sort((a,b)=>a-b);
+  if(mins.length<2)return 0;
+  return mins[Math.floor(mins.length/2)];
+}
+function effortOf(t){
+  if(t.effortSet||(!t.effortAi&&t.effort&&t.effort!==3))return{v:t.effort||3,src:'you'};
+  if(t.est>0)return{v:effortBucket(t.est),src:'estimate'};
+  const m=labelMedianMinutes(t);if(m)return{v:effortBucket(m),src:'similar tasks, ~'+m+'m'};
+  if(t.effortAi)return{v:t.effort||3,src:'AI'};
+  return{v:3,src:'assumed'};
+}
+function impactOf(t){
+  let v=3,src='assumed';
+  if(t.impactDuel){v=t.impact||3;src='duels';}
+  else if(t.impactSet||(!t.impactAi&&t.impact&&t.impact!==3)){v=t.impact||3;src='you';}
+  else if(t.impactAi){v=t.impact||3;src='AI';}
+  if(t.due){const days=(new Date(t.due)-Date.now())/864e5;if(days<=1){v=Math.min(5,v+2);src+=' + due';}else if(days<=7){v=Math.min(5,v+1);src+=' + due';}}
+  return{v,src};
+}
+function paretoRows(){
+  return board.tasks.filter(t=>!isDoneCol(t.colId))
+    .map(t=>{const im=impactOf(t),ef=effortOf(t);return{t,im,ef,score:im.v/ef.v,secs:taskTime(t)};})
+    .sort((a,b)=>b.score-a.score||(b.t.updatedAt||0)-(a.t.updatedAt||0));
+}
+function paretoInformative(rows){
+  if(rows.length<3)return false;
+  return new Set(rows.map(r=>r.score.toFixed(2))).size>=2&&rows.some(r=>r.im.src!=='assumed'||r.ef.src!=='assumed');
+}
+let focusIds=new Set();
+function computeFocus(){
+  focusIds=new Set();
+  if(!board)return;
+  const rows=paretoRows();
+  if(!paretoInformative(rows))return;
+  const n=Math.max(1,Math.round(rows.length*.2)),floor=rows[rows.length-1].score;
+  rows.slice(0,n).forEach(r=>{if(r.score>floor)focusIds.add(r.t.id);});
+}
+function sortColumnByValue(colId){
+  const rank=new Map(paretoRows().map((r,i)=>[r.t.id,i]));
+  const firstIdx=board.tasks.findIndex(t=>t.colId===colId);if(firstIdx<0)return;
+  const inCol=board.tasks.filter(t=>t.colId===colId),rest=board.tasks.filter(t=>t.colId!==colId);
+  inCol.sort((a,b)=>(rank.has(a.id)?rank.get(a.id):1e9)-(rank.has(b.id)?rank.get(b.id):1e9));
+  rest.splice(firstIdx,0,...inCol);
+  board.tasks=rest;
+  save();renderBoard();
+}
 function openPareto(){
   trackFeature('pareto_open');
-  const list=$('#pareto-list');list.innerHTML='';
-  const open=board.tasks.filter(t=>!(board.columns.find(c=>c.id===t.colId)||{}).done)
-   .map(t=>({t,score:(t.impact||3)/(t.effort||3),secs:taskTime(t)})).sort((a,b)=>b.score-a.score);
-  if(!open.length){list.append(el('p',{class:'mut',text:'No open tasks.'}));openOv('#ov-pareto');return;}
-  const topN=Math.max(1,Math.round(open.length*.2));
-  const maxScore=open[0].score;
-  open.forEach((x,i)=>{
-    const row=el('div',{class:'prow'+(i<topN?' top':'')},
-      i<topN?el('span',{class:'focus-tag',text:'FOCUS'}):null,
+  const g=$('#p-goal');
+  if(g){g.value=board.goal||'';g.onchange=()=>{board.goal=g.value.trim().slice(0,200);save();};}
+  duel=null;$('#p-duelbox').style.display='none';
+  const note=$('#p-note');if(note)note.textContent='';
+  renderParetoList();
+  openOv('#ov-pareto');
+}
+function renderParetoList(){
+  const list=$('#pareto-list');if(!list)return;
+  list.innerHTML='';
+  const rows=paretoRows();
+  const note=$('#p-note');
+  if(!rows.length){list.append(el('p',{class:'mut',text:'No open tasks.'}));return;}
+  const inf=paretoInformative(rows);
+  if(note&&!note.textContent)note.textContent=inf?'':'Everything scores the same so far. Score a task, run a few duels, or ask the AI.';
+  const topN=inf?Math.max(1,Math.round(rows.length*.2)):0;
+  const maxScore=rows[0].score||1;
+  rows.forEach((x,i)=>{
+    const top=i<topN&&x.score>rows[rows.length-1].score;
+    const tip='impact '+x.im.v+' ('+x.im.src+') · effort '+x.ef.v+' ('+x.ef.src+')'+(x.t.aiWhy?'\nAI: '+x.t.aiWhy:'');
+    const row=el('div',{class:'prow'+(top?' top':''),title:tip},
+      top?el('span',{class:'focus-tag',text:'FOCUS'}):null,
       el('span',{class:'nm',text:x.t.title,onclick:()=>openTask(x.t.id),style:'cursor:pointer'}),
-      el('span',{class:'mut',text:'i'+(x.t.impact||3)+'/e'+(x.t.effort||3)+(x.secs?' · ⏱ '+fmtMin(x.secs):'')}),
+      el('span',{class:'src',text:'i'+x.im.v+(x.im.src.startsWith('you')?'':'~')+' / e'+x.ef.v+(x.ef.src==='you'?'':'~')+(x.secs?' · ⏱ '+fmtMin(x.secs):'')}),
       el('div',{class:'bar',style:'width:'+Math.max(6,(x.score/maxScore)*120)+'px'}),
       el('span',{class:'sc',text:x.score.toFixed(1)}),
       el('button',{class:'ghost',text:'▶',title:'Start pomodoro on this task',onclick:e=>{e.stopPropagation();attachTimer(x.t.id);closeOv();}}));
     list.append(row);
   });
-  openOv('#ov-pareto');
+}
+/* ---- duels: "which matters more?" a few times, Elo rating, mapped back to impact 1 to 5 ---- */
+let duel=null;
+function eloOf(t){return typeof t.elo==='number'?t.elo:1000+(((t.impactSet||t.impactAi)?(t.impact||3):3)-3)*120;}
+function pickDuelPair(){
+  const open=board.tasks.filter(t=>!isDoneCol(t.colId));
+  if(open.length<2)return null;
+  const a=open.slice().sort((x,y)=>(x.duels||0)-(y.duels||0)||Math.random()-.5)[0];
+  const others=open.filter(t=>t!==a).sort((x,y)=>Math.abs(eloOf(x)-eloOf(a))-Math.abs(eloOf(y)-eloOf(a)));
+  const b=others[Math.floor(Math.random()*Math.min(4,others.length))];
+  return{a,b};
+}
+function startDuel(){duel={count:0};$('#p-duelbox').style.display='';renderDuel();}
+function renderDuel(){
+  const box=$('#p-duelbox');if(!box||!duel)return;
+  box.innerHTML='';
+  const pair=pickDuelPair();
+  if(!pair){box.append(el('p',{class:'mut',text:'Need at least two open tasks.'}));return;}
+  const colName=t=>(board.columns.find(c=>c.id===t.colId)||{}).name||'';
+  const mk=(t,o)=>el('div',{class:'dcard',onclick:()=>answerDuel(t,o)},el('b',{text:t.title}),
+    el('div',{class:'mut',text:[colName(t),t.due?'due '+String(t.due).slice(0,10):'',t.est?t.est+' min':''].filter(Boolean).join(' · ')}));
+  box.append(
+    el('div',{class:'mut',text:'Which matters more'+(board.goal?' for "'+board.goal+'"':'')+'? Click one.'+(duel.count?' '+duel.count+' answered, 6 to 10 is plenty.':'')}),
+    el('div',{class:'duel'},mk(pair.a,pair.b),el('span',{class:'vs',text:'vs'}),mk(pair.b,pair.a)),
+    el('div',{style:'display:flex;gap:8px'},el('button',{class:'ghost',text:'Skip this pair',onclick:renderDuel}),el('button',{class:'primary',text:'Done',onclick:endDuel})));
+}
+function answerDuel(win,lose){
+  const ra=eloOf(win),rb=eloOf(lose),ea=1/(1+Math.pow(10,(rb-ra)/400)),K=64;
+  win.elo=ra+K*(1-ea);lose.elo=rb-K*(1-ea);
+  win.duels=(win.duels||0)+1;lose.duels=(lose.duels||0)+1;
+  duel.count++;
+  applyEloToImpact();
+  save();renderDuel();renderParetoList();
+}
+function applyEloToImpact(){
+  const rated=board.tasks.filter(t=>!isDoneCol(t.colId)&&typeof t.elo==='number');
+  if(rated.length<2)return;
+  const r=rated.map(eloOf),lo=Math.min(...r),hi=Math.max(...r);
+  rated.forEach(t=>{
+    if(t.impactSet&&!t.impactDuel)return; /* a score you typed yourself wins over duels */
+    t.impact=hi>lo?1+Math.round(4*(eloOf(t)-lo)/(hi-lo)):3;
+    t.impactDuel=true;t.impactAi=false;touchTask(t);
+  });
+}
+function endDuel(){duel=null;const b=$('#p-duelbox');if(b)b.style.display='none';renderParetoList();renderBoard();}
+/* ---- AI rank: one call to a model on Cloudflare Workers AI, scored against the goal ---- */
+async function aiRank(){
+  if(!serverMode){alert('AI ranking needs the online (Cloudflare) version of the board.');return;}
+  const open=board.tasks.filter(t=>!isDoneCol(t.colId));
+  if(open.length<2){alert('Need at least two open tasks.');return;}
+  const btn=$('#p-ai'),note=$('#p-note');
+  btn.disabled=true;const was=btn.textContent;btn.textContent='✨ Thinking…';
+  if(note)note.textContent='Sending titles, labels, due dates and estimates to the model for this one call. Nothing is stored.';
+  try{
+    const tasks=open.slice(0,60).map(t=>({id:t.id,title:t.title,desc:String(t.desc||'').slice(0,200),labels:(t.labels||[]).map(id=>(board.labels.find(l=>l.id===id)||{}).name).filter(Boolean),due:t.due||'',est:t.est||0,column:(board.columns.find(c=>c.id===t.colId)||{}).name||''}));
+    const r=await apiFetch('api/ai-rank',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({goal:board.goal||'',tasks})});
+    const d=r.ok?await r.json().catch(()=>null):null;
+    if(!d||!d.ok||!Array.isArray(d.items))throw new Error((d&&d.err)||('HTTP '+r.status));
+    let n=0,kept=0;
+    d.items.forEach(it=>{
+      const t=open.find(x=>x.id===it.id);if(!t)return;
+      const im=Math.max(1,Math.min(5,Math.round(+it.impact||3))),ef=Math.max(1,Math.min(5,Math.round(+it.effort||3)));
+      if(t.impactSet&&!t.impactDuel)kept++;else{t.impact=im;t.impactAi=true;t.impactSet=false;t.impactDuel=false;delete t.elo;}
+      if(!t.effortSet&&!(t.est>0)&&!(t.effort&&t.effort!==3&&!t.effortAi)){t.effort=ef;t.effortAi=true;}
+      t.aiWhy=String(it.why||'').slice(0,140);
+      touchTask(t);n++;
+    });
+    save();if(note)note.textContent='';renderParetoList();renderBoard();trackFeature('ai_rank');
+    if(note)note.textContent='AI scored '+n+' tasks'+(kept?', kept your own score on '+kept:'')+' ('+(d.model||'model')+'). Hover a row for its reason.';
+  }catch(e){
+    if(note)note.textContent='AI ranking failed: '+(e.message||e);
+  }
+  btn.disabled=false;btn.textContent=was;
+}
+/* ---- the real Pareto chart: where the tracked hours went ---- */
+function drawParetoChart(){
+  const{ctx,w,h}=setupCanvas('#c-pareto');
+  if(!ctx)return;
+  const byKey=new Map();
+  board.tasks.concat(board.archive||[]).forEach(t=>{
+    const s=taskTime(t);if(!s)return;
+    const keys=(t.labels||[]).map(id=>(board.labels.find(l=>l.id===id)||{}).name).filter(Boolean);
+    const ks=keys.length?keys:['(no label)'];
+    ks.forEach(k=>byKey.set(k,(byKey.get(k)||0)+s/ks.length));
+  });
+  const rows=[...byKey.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12);
+  if(!rows.length){ctx.fillStyle=axisColor();ctx.fillText('No time tracked yet.',10,30);return;}
+  const total=rows.reduce((a,r)=>a+r[1],0);
+  const left=10,right=44,top=22,bottom=30,cw=(w-left-right)/rows.length,max=rows[0][1];
+  let cum=0,cut=-1;
+  ctx.font='11px sans-serif';
+  rows.forEach(([k,s],i)=>{
+    const bh=(s/max)*(h-top-bottom);
+    ctx.fillStyle=cut<0?'#0d9488':'#94a3b8';
+    ctx.fillRect(left+i*cw+4,h-bottom-bh,Math.max(2,cw-8),bh);
+    cum+=s;if(cut<0&&cum/total>=.8)cut=i;
+    ctx.fillStyle=axisColor();ctx.textAlign='center';
+    ctx.fillText(k.length>11?k.slice(0,10)+'…':k,left+i*cw+cw/2,h-bottom+14);
+  });
+  ctx.textAlign='left';
+  cum=0;ctx.strokeStyle='#f59e0b';ctx.lineWidth=2;ctx.beginPath();
+  rows.forEach(([k,s],i)=>{cum+=s;const x=left+i*cw+cw/2,y=top+(1-cum/total)*(h-top-bottom);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  ctx.stroke();
+  const y80=top+.2*(h-top-bottom);
+  ctx.setLineDash([4,4]);ctx.strokeStyle=axisColor();ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(left,y80);ctx.lineTo(w-right,y80);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=axisColor();ctx.fillText('80%',w-right+6,y80+4);
+  const n=cut+1;
+  ctx.fillText(n+' of '+rows.length+' '+(rows.length===1?'label':'labels')+' = 80% of '+fmtMin(total)+' tracked. Teal bars are the vital few.',left,12);
 }
 
 /* ================= archive ================= */
@@ -3046,6 +3333,7 @@ const FEATURE_LABELS={
   board_create:'Boards created',
   call_start:'Video calls',
   chat_send:'Chat messages',
+  ai_rank:'AI rankings',
 };
 let trackQueue={};let trackTimer=null;
 function trackFeature(name,n){
@@ -4003,6 +4291,10 @@ function bind(){
   $('#cp-close').onclick=hideCallPanel;
   $('#cp-copylink').onclick=copyCallLink;
   $('#cp-emailinvite').onclick=emailCallInvite;
+  $('#p-duel').onclick=()=>{if(duel)endDuel();else startDuel();};
+  $('#p-ai').onclick=aiRank;
+  $('#t-impact').addEventListener('change',()=>{if(editing)editing.impactTouched=true;});
+  $('#t-effort').addEventListener('change',()=>{if(editing)editing.effortTouched=true;});
   $('#cp-chatform').addEventListener('submit',e=>{e.preventDefault();sendChat();});
   $$('#cp-tabs button').forEach(b=>b.onclick=()=>setPanelView(b.dataset.view));
   $('#cp-min').onclick=()=>{const p=callPanel();p.classList.toggle('min');$('#cp-min').textContent=p.classList.contains('min')?'▢':'—';};
@@ -4044,7 +4336,7 @@ function bind(){
   $('#ov-task').addEventListener('keydown',e=>{
     if(e.key!=='Enter'||e.ctrlKey||e.metaKey||e.altKey||!editing)return;
     const t=e.target;if(!t||!t.matches)return;
-    if(t.id==='t-desc'||t.id==='t-newsub'||t.tagName==='TEXTAREA')return;
+    if(t.id==='t-desc'||t.id==='t-newsub'||t.tagName==='TEXTAREA'||t.classList.contains('sub-edit'))return;
     if(t.tagName==='BUTTON'&&t.id!=='t-save')return;
     if(t.id==='t-save'){e.preventDefault();e.stopPropagation();saveTaskModal();return;}
     if(t.matches('input,select')||t.closest('.task-modal')){
@@ -4098,6 +4390,7 @@ function bind(){
     if(files.length){e.preventDefault();addFiles(files);}
   });
   $('#t-desc').addEventListener('input',renderDescLinks);
+  $('#t-desc').addEventListener('input',autosizeDesc);
   $('#t-due').addEventListener('input',()=>{if(editing)updateTaskHead(editing.task);});
   $('#t-due').addEventListener('change',()=>{
     if(editing)updateTaskHead(editing.task);
@@ -4163,6 +4456,9 @@ function bind(){
   /* keyboard */
   document.addEventListener('keydown',e=>{
     if(e.key==='Escape'){closeOv();return;}
+    if(e.key==='Enter'&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&editing&&$('#ov-task').classList.contains('open')&&!(e.target&&e.target.closest&&e.target.closest('#ov-task'))){
+      e.preventDefault();commitTaskModal();return; /* dialog open, focus on nothing in particular: Enter saves */
+    }
     if(e.target&&e.target.matches&&e.target.matches('input,textarea,select'))return;
     if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo();return;}
     if(e.key==='/'){e.preventDefault();$('#search').focus();}

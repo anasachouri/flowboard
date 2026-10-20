@@ -22,6 +22,7 @@ const FEATURE_EVENTS = {
   dark_mode: true,
   board_create: true,
   call_start: true,
+  ai_rank: true,
 };
 
 function json(data, status = 200, headers = {}) {
@@ -295,6 +296,44 @@ export class UserBoard {
     this.wsSet(ws, { gone: true });
     if (a.inCall) this.callBroadcast(a.boardId, ws, { type: 'peer-left', id: a.peerId });
   }
+  /* ----- AI rank: score open tasks against the board goal with Workers AI (free daily allowance) ----- */
+  async aiRank(body) {
+    const env = this.env || {};
+    if (!env.AI || typeof env.AI.run !== 'function') return { ok: false, err: 'AI binding missing: add "ai": { "binding": "AI" } to wrangler.jsonc and redeploy' };
+    const goal = String((body && body.goal) || '').slice(0, 300);
+    const tasks = (Array.isArray(body && body.tasks) ? body.tasks : []).slice(0, 60).map((t, i) => ({
+      n: i + 1, id: String((t && t.id) || '').slice(0, 40), title: String((t && t.title) || '').slice(0, 140),
+      desc: String((t && t.desc) || '').replace(/\s+/g, ' ').slice(0, 200),
+      labels: (Array.isArray(t && t.labels) ? t.labels : []).slice(0, 6).map((x) => String(x).slice(0, 30)),
+      due: String((t && t.due) || '').slice(0, 16), est: Number(t && t.est) || 0, column: String((t && t.column) || '').slice(0, 40),
+    })).filter((t) => t.id && t.title);
+    if (tasks.length < 2) return { ok: false, err: 'need at least two tasks' };
+    const model = env.AI_MODEL || '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+    const system = "You prioritise tasks on a small founding team's kanban board using the Pareto principle: a few tasks create most of the value. Score each task on IMPACT toward the stated goal (1 negligible, 2 minor, 3 useful, 4 important, 5 decisive) and EFFORT (1 under 30 minutes, 2 about an hour, 3 a few hours, 4 a day or two, 5 a week or more). Be decisive and use the full range: about one task in five deserves impact 4 or 5, and about one in five deserves 1. Judge impact by what the goal needs, not by urgency alone. Reply with JSON only.";
+    const user = 'Today: ' + new Date().toISOString().slice(0, 10) + '\nGoal: ' + (goal || '(none given, infer the likely goal from the tasks)') + '\n\nTasks:\n' +
+      tasks.map((t) => '#' + t.n + ' ' + t.title + (t.column ? ' [' + t.column + ']' : '') + (t.labels.length ? ' {' + t.labels.join(', ') + '}' : '') + (t.due ? ' due ' + t.due : '') + (t.est ? ' est ' + t.est + 'm' : '') + (t.desc ? '\n   ' + t.desc : '')).join('\n') +
+      '\n\nReturn {"items":[{"n":1,"impact":1-5,"effort":1-5,"why":"at most 12 words"}, ...]} with every task number exactly once.';
+    const messages = [{ role: 'system', content: system }, { role: 'user', content: user }];
+    const schema = { type: 'object', properties: { items: { type: 'array', items: { type: 'object', properties: { n: { type: 'integer' }, impact: { type: 'integer' }, effort: { type: 'integer' }, why: { type: 'string' } }, required: ['n', 'impact', 'effort'] } } }, required: ['items'] };
+    let out;
+    try {
+      out = await env.AI.run(model, { messages, max_tokens: 2048, temperature: 0.2, response_format: { type: 'json_schema', json_schema: schema } });
+    } catch (e1) {
+      try { out = await env.AI.run(model, { messages, max_tokens: 2048, temperature: 0.2 }); }
+      catch (e2) { return { ok: false, err: 'model call failed: ' + ((e2 && e2.message) || e2) }; }
+    }
+    let text = out && typeof out === 'object' && 'response' in out ? out.response : out;
+    let parsed = null;
+    if (text && typeof text === 'object' && Array.isArray(text.items)) parsed = text;
+    else if (typeof text === 'string') {
+      try { parsed = JSON.parse(text); } catch (e) { const m = text.match(/\{[\s\S]*\}/); if (m) { try { parsed = JSON.parse(m[0]); } catch (e2) {} } }
+    }
+    if (!parsed || !Array.isArray(parsed.items)) return { ok: false, err: 'the model returned no usable JSON, try again' };
+    const byN = new Map(tasks.map((t) => [t.n, t.id]));
+    const clamp = (v) => Math.max(1, Math.min(5, Math.round(Number(v) || 3)));
+    const items = parsed.items.map((it) => ({ id: byN.get(Number(it && it.n)) || '', impact: clamp(it && it.impact), effort: clamp(it && it.effort), why: String((it && it.why) || '').slice(0, 140) })).filter((it) => it.id);
+    return { ok: true, items, model: model.replace(/^@cf\//, '') };
+  }
   /* STUN is enough for most home / office networks. Set TURN_KEY_ID + TURN_KEY_API_TOKEN secrets
      (Cloudflare Realtime TURN) to also relay through strict corporate NATs. Credentials are cached ~50 min. */
   async iceServers() {
@@ -373,6 +412,11 @@ export class UserBoard {
     /* ----- board room: ICE servers + WebSocket (call signalling and chat), any valid key, scoped to its boards ----- */
     if (url.pathname === '/ice' && req.method === 'GET') {
       return Response.json(await this.iceServers(), { headers: { 'Cache-Control': 'no-store' } });
+    }
+    if (url.pathname === '/ai-rank' && req.method === 'POST') {
+      let body = null;
+      try { body = await req.json(); } catch (e) { return Response.json({ ok: false, err: 'bad json' }, { status: 400 }); }
+      return Response.json(await this.aiRank(body), { headers: { 'Cache-Control': 'no-store' } });
     }
     if (url.pathname === '/call') {
       if ((req.headers.get('Upgrade') || '').toLowerCase() !== 'websocket') return new Response('expected websocket', { status: 426 });
@@ -2049,12 +2093,13 @@ export default {
     }
 
     /* video call: ICE servers + WebSocket signalling, routed to the board owner's UserBoard */
-    if (p === '/api/call' || (p === '/api/ice' && req.method === 'GET')) {
+    if (p === '/api/call' || (p === '/api/ice' && req.method === 'GET') || (p === '/api/ai-rank' && req.method === 'POST')) {
       const who = await resolveBoardPrincipal(env, req, url);
       if (!who) return json({ ok: false }, 401);
       const stub = env.USER_BOARD.get(env.USER_BOARD.idFromName('user:' + who.ownerUserId));
       const fwd = { 'x-fb-master': who.isMaster ? '1' : '0', 'x-fb-key': who.guestKey };
       if (p === '/api/ice') return stub.fetch(new Request('https://board/ice', { headers: fwd }));
+      if (p === '/api/ai-rank') return stub.fetch(new Request('https://board/ai-rank', { method: 'POST', headers: { ...fwd, 'Content-Type': 'application/json' }, body: await req.text() }));
       if ((req.headers.get('Upgrade') || '').toLowerCase() !== 'websocket') return new Response('expected websocket', { status: 426 });
       const h = new Headers(req.headers);
       for (const [k, v] of Object.entries(fwd)) h.set(k, v);
