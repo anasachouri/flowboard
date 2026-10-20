@@ -2,7 +2,11 @@
 
 A kanban board that fits in one file. Drag tasks between columns, run a pomodoro timer on them, see which tasks are worth your time, work on the same board with a friend, talk to them over video and chat, all inside the board. No account to create, no software to install, nothing to pay.
 
-Author: Dr Anas Achouri
+**[Try it in your browser](https://anasachouri.github.io/flowboard/)** (nothing is uploaded, it runs entirely on your device) or read on to host your own for free.
+
+![FlowBoard: a sprint board with the chat open](docs/board.png)
+
+Made by **Dr Anas Achouri**, materials engineer with a PhD and founder of a UK deep-tech startup. I built FlowBoard to run my own sprints and it grew from there. Say hello on [LinkedIn](https://www.linkedin.com/in/anas-achouri/).
 
 ## Who this is for
 
@@ -90,6 +94,8 @@ Click 🎯 in the header. Tasks are listed from best value to worst. "Value" is 
 - **✨ AI rank** sends your open task titles to an AI model on Cloudflare and scores them against the goal you typed at the top. It only runs when you click it and keeps nothing. Scores you typed yourself are never overwritten.
 
 The best 20% get a small 🎯 on their card on the board.
+
+![The Pareto view with a goal, duel and AI rank](docs/pareto.png)
 
 ## Your data
 
