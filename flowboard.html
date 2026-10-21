@@ -783,6 +783,7 @@ kbd{background:var(--chip);border:1px solid var(--border);border-radius:4px;padd
 'use strict';
 /* ================= state ================= */
 const LS='flowboard.v2', LS_OLD='flowboard.v1';
+const BASE_TITLE=document.title;
 const COLORS={white:'#f7f8fa',yellow:'#ffe28a',orange:'#ffc47d',red:'#ff9d8a',pink:'#ffb3d1',purple:'#d3b8f5',blue:'#a5cdf5',green:'#b2e5a5',teal:'#9adfd4',gray:'#d5d9de'};
 const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
 const todayISO=()=>new Date().toISOString().slice(0,10);
@@ -2133,8 +2134,10 @@ function releaseTimerTask(taskId){
   else tm.workStartedAt=0;
   tm.taskId=null;
 }
+function lastTimerMode(){return (state.settings&&state.settings.timerMode==='stopwatch')?'stopwatch':'pomodoro';} /* remembered per device after a stop */
 function startFresh(mode,taskId,running){
   const now=Date.now();
+  if(state.settings)state.settings.timerMode=mode;
   state.timer={mode,taskId:taskId||null,phase:'work',count:0,running:!!running,ownerId:deviceId,
     endsAt:(mode==='pomodoro'&&running)?now+state.settings.work*60000:0,
     remainMs:(mode==='pomodoro'&&!running)?state.settings.work*60000:0,
@@ -2158,13 +2161,13 @@ function attachTimer(id){
     renderPomo();renderBoard();closeOv();
     return;
   }
-  startFresh(tm?tm.mode:'pomodoro',id,true);
+  startFresh(tm?tm.mode:lastTimerMode(),id,true);
   closeOv();
 }
 function startTimer(){
   const tm=curTimer(),now=Date.now();
   if(tm&&tm.running)return; /* no pause. Deep work runs uninterrupted until stop or phase end */
-  if(!tm){startFresh('pomodoro',null,true);trackFeature('pomodoro_start');return;}
+  if(!tm){startFresh(lastTimerMode(),null,true);trackFeature('pomodoro_start');return;}
   if(tm.mode==='pomodoro'){tm.endsAt=now+(tm.remainMs||state.settings.work*60000);tm.remainMs=0;}
   else tm.startedAt=now;
   if(tm.taskId&&(tm.mode==='stopwatch'||tm.phase==='work'))tm.workStartedAt=now;
@@ -2201,7 +2204,7 @@ function toggleMode(){
     logWork(tm,Date.now());
     if(task&&task.timeLog&&task.timeLog.length>before){touchTask(task);save();}
   }
-  startFresh((tm&&tm.mode==='pomodoro')?'stopwatch':'pomodoro',tm?tm.taskId:null,false);
+  startFresh(((tm?tm.mode:lastTimerMode())==='pomodoro')?'stopwatch':'pomodoro',tm?tm.taskId:null,false);
 }
 function stopTimer(){
   const tm=curTimer();if(!tm)return;
@@ -2214,9 +2217,9 @@ function stopTimer(){
 }
 function renderPomo(){
   const box=$('#pomo'),tm=curTimer(),now=Date.now();
-  const mode=tm?tm.mode:'pomodoro',running=!!(tm&&tm.running),phase=tm?tm.phase:'work';
+  const mode=tm?tm.mode:lastTimerMode(),running=!!(tm&&tm.running),phase=tm?tm.phase:'work';
   let secs;
-  if(!tm)secs=state.settings.work*60;
+  if(!tm)secs=mode==='stopwatch'?0:state.settings.work*60;
   else if(mode==='stopwatch')secs=Math.floor(((tm.elapsedMs||0)+(running?now-(tm.startedAt||now):0))/1000);
   else secs=Math.ceil((running?Math.max(0,(tm.endsAt||now)-now):(tm.remainMs||0))/1000);
   const m=String(Math.floor(secs/60)).padStart(2,'0'),sx=String(secs%60).padStart(2,'0');
@@ -2234,6 +2237,9 @@ function renderPomo(){
   $('#pomo-mode').textContent=mode==='pomodoro'?'\ud83c\udf45':'\u23f1';
   box.className=(running&&(phase==='work'||mode==='stopwatch'))?'work-running':(tm&&phase!=='work'?'break':'');
   box.id='pomo';
+  /* the browser tab shows the countdown while a timer runs */
+  const title=(tm&&running)?(m+':'+sx+' '+(mode==='stopwatch'?'\u23f1':(phase==='work'?'\ud83c\udf45':'\u2615'))+(t?' '+t.title:'')+' \u00b7 FlowBoard'):BASE_TITLE;
+  if(document.title!==title)document.title=title;
 }
 function beep(){
   try{
@@ -3376,6 +3382,7 @@ function renderUsageInto(box,st){
   });
 }
 let serverMode=false,serverAlive=false,serverPushTimer=null;
+let timerPushPending=false; /* a local change is queued or in flight: the server's timer is older than ours */
 let pendingRemote=null; /* remote state deferred while a task dialog is open / drag in progress */
 let baseServerAt=0; /* last server updatedAt we adopted (detect concurrent edits) */
 let serverHydrated=false; /* true after this session loaded/confirmed cloud state — blocks stale localStorage from overwriting the server */
@@ -3562,7 +3569,7 @@ function adoptRemote(data){
     if(!ref||!data)return;
     if(Object.prototype.hasOwnProperty.call(data,'timer')){
       const next=(data.timer&&typeof data.timer==='object')?data.timer:null;
-      if(JSON.stringify(state.timer||null)!==JSON.stringify(next||null)){
+      if(!timerPushPending&&JSON.stringify(state.timer||null)!==JSON.stringify(next||null)){
         state.timer=next;
         renderPomo();
       }
@@ -3587,7 +3594,7 @@ function adoptRemote(data){
     if(data&&Object.prototype.hasOwnProperty.call(data,'timer')){
       const next=(data.timer&&typeof data.timer==='object')?data.timer:null;
       const cur=state.timer;
-      if(JSON.stringify(cur||null)!==JSON.stringify(next||null)){
+      if(!timerPushPending&&JSON.stringify(cur||null)!==JSON.stringify(next||null)){
         applyingRemote=true;
         state.timer=next;
         saveQuiet();
@@ -4004,6 +4011,7 @@ async function pollServer(){
 function scheduleServerPush(){
   if(!serverMode||applyingRemote)return;
   clearTimeout(serverPushTimer);
+  timerPushPending=true;
   serverPushTimer=setTimeout(async()=>{
     try{
       /* Pull-before-push: if another device wrote since we last adopted, merge so we don't clobber it */
@@ -4038,6 +4046,7 @@ function scheduleServerPush(){
       const r=await apiFetch('api/state',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify(payload)});
       serverAlive=r.ok;
+      if(r.ok)timerPushPending=false;
       if(r.ok&&!isViewingShared()){
         baseServerAt=Math.max(baseServerAt,state.updatedAt||0);
         serverHydrated=true;
