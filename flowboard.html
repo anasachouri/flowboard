@@ -58,7 +58,7 @@ header h1.brand-text span{color:inherit}
 .menu-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;padding:8px 10px 2px;pointer-events:none}
 #pomo{display:flex;align-items:center;gap:6px;background:var(--chip);border:1px solid var(--border);border-radius:8px;padding:3px 8px}
 #pomo .time{font-variant-numeric:tabular-nums;font-weight:700;font-size:16px;min-width:52px;text-align:center}
-#pomo .phase{font-size:11px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#pomo .phase{font-size:11px;color:var(--muted);max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #pomo.work-running .time{color:var(--danger)}
 #pomo.break .time{color:var(--accent)}
 #pomo-start:disabled{opacity:.35;cursor:default}
@@ -2227,10 +2227,12 @@ function renderPomo(){
   const t=tm&&tm.taskId&&findTask(tm.taskId);
   const phaseLbl=mode==='stopwatch'?'Stopwatch':(phase==='work'?'Pomodoro':(phase==='long'?'Long break':'Break'));
   let phaseTxt=phaseLbl;
-  if(t)phaseTxt+=' \u00b7 '+t.title;
+  const onBreak=mode==='pomodoro'&&phase!=='work';
+  if(onBreak)phaseTxt+=running?' \u00b7 not logged':' \u00b7 \u23f9 then \u25b6 skips';
+  else if(t)phaseTxt+=' \u00b7 '+t.title;
   else if(running&&(phase==='work'||mode==='stopwatch'))phaseTxt+=' \u00b7 pick a task \u25b6';
   $('#pomo-phase').textContent=phaseTxt;
-  $('#pomo-phase').title=t?t.title:(running?'Hover a card and press \u25b6 to attach':'');
+  $('#pomo-phase').title=onBreak?'Break time is not added to any task. Press \u23f9 then \u25b6 to skip the break and start a fresh work block.':(t?t.title:(running?'Hover a card and press \u25b6 to attach':''));
   $('#pomo-start').textContent='\u25b6';
   $('#pomo-start').disabled=!!running;
   $('#pomo-start').title=running?'Running. Use stop to end, or \u25b6 on a card to focus a task':'Start';
