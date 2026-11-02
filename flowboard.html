@@ -4715,7 +4715,9 @@ async function checkOfflineReady(){
   syncBtn();
 }
 if('serviceWorker'in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
-  navigator.serviceWorker.register('sw.js').then(()=>setTimeout(checkOfflineReady,1500)).catch(()=>{});
+  checkOfflineReady(); /* already cached on later visits: blue right away, no green flash */
+  navigator.serviceWorker.addEventListener('controllerchange',checkOfflineReady);
+  navigator.serviceWorker.register('sw.js').then(()=>setTimeout(checkOfflineReady,1500)).catch(()=>{}); /* first visit */
 }
 /* recover from IndexedDB backup if it is newer (e.g. After a localStorage-quota failure).
    Skip on live-sync URLs: an old IDB snapshot must not resurrect a stale 200-To-do board over the cloud. */
