@@ -196,6 +196,13 @@ self.addEventListener('fetch', e => {
 
 /* ===== AI rank via a local Ollama (same prompt/schema as worker.mjs aiRank on Workers AI) =====
    env OLLAMA_URL (e.g. http://10.10.x.x:11434) + OLLAMA_MODEL; optional OLLAMA_NUM_CTX (default 8192), OLLAMA_TIMEOUT_S (default 180). */
+/* OLLAMA_THINK: false | true | a level from /api/show (e.g. low); unset = model default.
+   Thinking goes to message.thinking, the JSON answer stays in message.content; false is much faster. */
+function thinkOpt() {
+  const v = (process.env.OLLAMA_THINK || '').trim();
+  if (!v) return {};
+  return { think: v === 'true' ? true : v === 'false' ? false : v };
+}
 async function aiRank(body) {
   const base = (process.env.OLLAMA_URL || '').replace(/\/+$/, ''), model = process.env.OLLAMA_MODEL || '';
   if (!base || !model) return { ok: false, err: 'AI rank is not configured on this server: set OLLAMA_URL and OLLAMA_MODEL' };
@@ -217,7 +224,7 @@ async function aiRank(body) {
   try {
     const r = await fetch(base + '/api/chat', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(timeoutS * 1000),
-      body: JSON.stringify({ model, stream: false, format: schema,
+      body: JSON.stringify({ model, stream: false, format: schema, ...thinkOpt(),
         options: { temperature: 0.2, num_ctx: +process.env.OLLAMA_NUM_CTX || 8192 },
         messages: [{ role: 'system', content: system }, { role: 'user', content: user }] }),
     });
@@ -606,6 +613,6 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log('  address can see it. The key is saved in flowboard-key.txt.');
   console.log('  Board data saves to flowboard-data.json in this folder.');
   console.log('  Press Ctrl+C to stop.');
-  console.log('  AI rank: ' + (process.env.OLLAMA_URL && process.env.OLLAMA_MODEL ? 'Ollama ' + process.env.OLLAMA_MODEL + ' at ' + process.env.OLLAMA_URL : 'off (set OLLAMA_URL and OLLAMA_MODEL)'));
+  console.log('  AI rank: ' + (process.env.OLLAMA_URL && process.env.OLLAMA_MODEL ? 'Ollama ' + process.env.OLLAMA_MODEL + ' at ' + process.env.OLLAMA_URL + (process.env.OLLAMA_THINK ? ', think=' + process.env.OLLAMA_THINK : '') : 'off (set OLLAMA_URL and OLLAMA_MODEL)'));
   console.log('  Calls: ' + (process.env.TURN_KEY_ID && process.env.TURN_KEY_API_TOKEN ? 'Cloudflare TURN enabled' : process.env.FLOWBOARD_ICE ? 'custom ICE list (FLOWBOARD_ICE)' : 'STUN only, no TURN relay'));
 });
