@@ -194,6 +194,53 @@ self.addEventListener('fetch', e => {
 });
 `;
 
+/* ===== AI rank via a local Ollama (same prompt/schema as worker.mjs aiRank on Workers AI) =====
+   env OLLAMA_URL (e.g. http://10.10.x.x:11434) + OLLAMA_MODEL; optional OLLAMA_NUM_CTX (default 8192), OLLAMA_TIMEOUT_S (default 180). */
+async function aiRank(body) {
+  const base = (process.env.OLLAMA_URL || '').replace(/\/+$/, ''), model = process.env.OLLAMA_MODEL || '';
+  if (!base || !model) return { ok: false, err: 'AI rank is not configured on this server: set OLLAMA_URL and OLLAMA_MODEL' };
+  const goal = String((body && body.goal) || '').slice(0, 300);
+  const tasks = (Array.isArray(body && body.tasks) ? body.tasks : []).slice(0, 60).map((t, i) => ({
+    n: i + 1, id: String((t && t.id) || '').slice(0, 40), title: String((t && t.title) || '').slice(0, 140),
+    desc: String((t && t.desc) || '').replace(/\s+/g, ' ').slice(0, 200),
+    labels: (Array.isArray(t && t.labels) ? t.labels : []).slice(0, 6).map((x) => String(x).slice(0, 30)),
+    due: String((t && t.due) || '').slice(0, 16), est: Number(t && t.est) || 0, column: String((t && t.column) || '').slice(0, 40),
+  })).filter((t) => t.id && t.title);
+  if (tasks.length < 2) return { ok: false, err: 'need at least two tasks' };
+    const system = "You prioritise tasks on a small founding team's kanban board using the Pareto principle: a few tasks create most of the value. Score each task on IMPACT toward the stated goal (1 negligible, 2 minor, 3 useful, 4 important, 5 decisive) and EFFORT (1 under 30 minutes, 2 about an hour, 3 a few hours, 4 a day or two, 5 a week or more). Be decisive and use the full range: about one task in five deserves impact 4 or 5, and about one in five deserves 1. Judge impact by what the goal needs, not by urgency alone. Reply with JSON only.";
+    const user = 'Today: ' + new Date().toISOString().slice(0, 10) + '\nGoal: ' + (goal || '(none given, infer the likely goal from the tasks)') + '\n\nTasks:\n' +
+      tasks.map((t) => '#' + t.n + ' ' + t.title + (t.column ? ' [' + t.column + ']' : '') + (t.labels.length ? ' {' + t.labels.join(', ') + '}' : '') + (t.due ? ' due ' + t.due : '') + (t.est ? ' est ' + t.est + 'm' : '') + (t.desc ? '\n   ' + t.desc : '')).join('\n') +
+      '\n\nReturn {"items":[{"n":1,"impact":1-5,"effort":1-5,"why":"at most 12 words"}, ...]} with every task number exactly once.';
+    const schema = { type: 'object', properties: { items: { type: 'array', items: { type: 'object', properties: { n: { type: 'integer' }, impact: { type: 'integer' }, effort: { type: 'integer' }, why: { type: 'string' } }, required: ['n', 'impact', 'effort'] } } }, required: ['items'] };
+  const timeoutS = +process.env.OLLAMA_TIMEOUT_S || 180;
+  let text;
+  try {
+    const r = await fetch(base + '/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(timeoutS * 1000),
+      body: JSON.stringify({ model, stream: false, format: schema,
+        options: { temperature: 0.2, num_ctx: +process.env.OLLAMA_NUM_CTX || 8192 },
+        messages: [{ role: 'system', content: system }, { role: 'user', content: user }] }),
+    });
+    if (!r.ok) { const t = await r.text().catch(() => ''); console.log('AI rank: Ollama HTTP ' + r.status + ' ' + t.slice(0, 200)); return { ok: false, err: 'Ollama returned HTTP ' + r.status + (t ? ': ' + t.slice(0, 120) : '') }; }
+    const d = await r.json();
+    text = d && d.message && d.message.content;
+  } catch (e) {
+    const why = (e && e.name === 'TimeoutError') ? 'timed out after ' + timeoutS + ' s' : ((e && e.cause && e.cause.code) || (e && e.message) || String(e));
+    console.log('AI rank: cannot reach Ollama at ' + base + ': ' + why);
+    return { ok: false, err: 'cannot reach Ollama (' + why + ')' };
+  }
+  let parsed = null;
+  try { parsed = JSON.parse(text); } catch (e) { const m = String(text || '').match(/\{[\s\S]*\}/); if (m) { try { parsed = JSON.parse(m[0]); } catch (e2) {} } }
+  if (!parsed || !Array.isArray(parsed.items)) return { ok: false, err: 'the model returned no usable JSON, try again' };
+  const byN = new Map(tasks.map((t) => [t.n, t.id]));
+  const clamp = (v) => Math.max(1, Math.min(5, Math.round(Number(v) || 3)));
+  const seen = new Set();
+  const items = parsed.items.map((it) => ({ id: byN.get(Number(it && it.n)) || '', impact: clamp(it && it.impact), effort: clamp(it && it.effort), why: String((it && it.why) || '').slice(0, 140) }))
+    .filter((it) => it.id && !seen.has(it.id) && seen.add(it.id)); /* drop invented numbers and duplicates */
+  console.log(new Date().toISOString() + ' AI rank: ' + model + ' scored ' + items.length + '/' + tasks.length + ' tasks');
+  return { ok: true, items, model };
+}
+
 const server = http.createServer((req, res) => {
   const url = (req.url || '/').split('?')[0];
 
@@ -261,6 +308,19 @@ const server = http.createServer((req, res) => {
     iceServers().then(data => {
       res.writeHead(200, {'Content-Type':'application/json','Cache-Control':'no-store'});
       res.end(JSON.stringify(data));
+    });
+    return;
+  }
+
+  if (url === '/api/ai-rank' && req.method === 'POST') {
+    if (!authorized(req, req.url || '')) { res.writeHead(401, {'Content-Type':'text/plain'}); res.end('unauthorized'); return; }
+    let body = '';
+    req.on('data', c => { body += c; if (body.length > 1e6) req.destroy(); });
+    req.on('end', async () => {
+      let b = null; try { b = JSON.parse(body || '{}'); } catch (e) {}
+      const out = b ? await aiRank(b) : { ok: false, err: 'bad json' };
+      res.writeHead(b ? 200 : 400, {'Content-Type':'application/json','Cache-Control':'no-store'});
+      res.end(JSON.stringify(out));
     });
     return;
   }
@@ -546,5 +606,6 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log('  address can see it. The key is saved in flowboard-key.txt.');
   console.log('  Board data saves to flowboard-data.json in this folder.');
   console.log('  Press Ctrl+C to stop.');
+  console.log('  AI rank: ' + (process.env.OLLAMA_URL && process.env.OLLAMA_MODEL ? 'Ollama ' + process.env.OLLAMA_MODEL + ' at ' + process.env.OLLAMA_URL : 'off (set OLLAMA_URL and OLLAMA_MODEL)'));
   console.log('  Calls: ' + (process.env.TURN_KEY_ID && process.env.TURN_KEY_API_TOKEN ? 'Cloudflare TURN enabled' : process.env.FLOWBOARD_ICE ? 'custom ICE list (FLOWBOARD_ICE)' : 'STUN only, no TURN relay'));
 });
