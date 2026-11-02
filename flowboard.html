@@ -4710,7 +4710,9 @@ initServer();
 var offlineReady=false;
 async function checkOfflineReady(){
   try{
-    offlineReady=!!(navigator.serviceWorker&&navigator.serviceWorker.controller&&window.caches&&await caches.match(location.origin+'/'));
+    /* ready = an active service worker plus a cached page; a hard reload (Ctrl+F5) bypasses the worker for that load but the offline copy still exists */
+    const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();
+    offlineReady=!!(reg&&reg.active&&window.caches&&await caches.match(location.origin+'/'));
   }catch(e){offlineReady=false;}
   syncBtn();
 }
