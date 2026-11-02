@@ -131,7 +131,7 @@ header h1.brand-text span{color:inherit}
   @keyframes bannerin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
 }
 #btn-chat{white-space:nowrap}
-#btn-chat.unread{border-color:var(--accent);color:var(--accent);font-weight:600}
+#btn-chat.unread{border-color:var(--accent);color:var(--accent);font-weight:600;animation:callring 1.3s ease-in-out infinite}
 #callbanner{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:95;display:none;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--accent);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.3);padding:8px 10px 8px 14px;max-width:calc(100vw - 24px);animation:bannerin .25s ease-out}
 #callbanner.on{display:flex}
 #callbanner .cb-text{font-size:13px}
@@ -215,8 +215,9 @@ header h1.brand-text span{color:inherit}
 .badge{background:rgba(0,0,0,.10);border-radius:4px;padding:1px 6px;white-space:nowrap}
 body.dark .card .badge{background:rgba(255,255,255,.08)}
 body.dark .card .badge.lbl{background:rgba(255,255,255,.12)}
-.badge.due-over{background:color-mix(in srgb,var(--urg-over) 70%,#000);color:var(--urg-text)}
-.badge.due-today{background:color-mix(in srgb,var(--urg-warm) 75%,#000);color:var(--urg-text)}
+.badge.due{font-variant-numeric:tabular-nums}
+.card .badge.due-over{background:#d64545;color:#fff;font-weight:600}
+.card .badge.due-warn{background:#f2c94c;color:#3a2e00;font-weight:600}
 .badge.due-soon{background:rgba(0,0,0,.08)}
 body.dark .card .badge.due-soon{background:rgba(255,255,255,.1)}
 .card.due-over{box-shadow:0 0 0 1px color-mix(in srgb,var(--urg-over) 45%,transparent),var(--shadow)}
@@ -271,6 +272,29 @@ a.chip:hover{border-color:var(--accent)}
 .tm-main{flex:3;padding:6px 22px 16px;min-width:0}
 .tm-side{flex:2;padding:6px 18px 16px;background:var(--cell);min-width:230px}
 .tm-side select,.tm-side input{width:100%}
+.due-row{display:flex;gap:6px;position:relative}
+.due-row #t-due-date{flex:3;min-width:0}.due-row #t-due-time{flex:2;min-width:0}
+.due-row input.invalid{border-color:var(--danger)}
+.field-pop{position:absolute;top:calc(100% + 6px);z-index:60;padding:12px;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.22)}
+.field-pop.clock{right:0;width:248px}.field-pop.cal{left:0;width:252px}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-weight:600}
+.cal-head button{border:0;background:none;font-size:18px;padding:2px 10px;cursor:pointer;color:var(--text)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-variant-numeric:tabular-nums}
+.cal-grid .wd{font-size:11px;color:var(--muted);padding:2px 0}
+.cal-grid button{border:0;background:none;border-radius:50%;aspect-ratio:1;padding:0;font-size:13px;cursor:pointer;color:var(--text)}
+.cal-grid button:hover{background:var(--chip)}
+.cal-grid button.out{color:var(--muted);opacity:.6}
+.cal-grid button.today{box-shadow:inset 0 0 0 1px var(--accent)}
+.cal-grid button.sel{background:var(--accent);color:var(--accent-text)}
+.clock-head{display:flex;justify-content:center;align-items:center;gap:2px;font-size:30px;font-variant-numeric:tabular-nums;margin-bottom:10px}
+.clock-head button{font:inherit;padding:2px 8px;border:0;border-radius:8px;background:var(--chip);color:var(--muted);cursor:pointer}
+.clock-head button.on{background:color-mix(in srgb,var(--accent) 22%,var(--panel));color:var(--text)}
+.clock-dial{position:relative;width:224px;height:224px;border-radius:50%;background:var(--cell);touch-action:none;user-select:none;cursor:pointer}
+.clock-dial svg{position:absolute;inset:0;pointer-events:none}
+.clock-dial .num{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:14px;pointer-events:none;font-variant-numeric:tabular-nums}
+.clock-dial .num.inner{font-size:12px;color:var(--muted)}
+.clock-dial .num.sel{color:var(--accent-text)}
+.clock-foot{display:flex;justify-content:flex-end;gap:6px;margin-top:10px}
 .flabel{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin:12px 0 4px;display:block}
 .tm-grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
 .task-modal .actions{padding:12px 22px;border-top:1px solid var(--border);margin-top:0;flex:none;position:sticky;bottom:0;background:var(--panel);z-index:2}
@@ -506,7 +530,7 @@ kbd{background:var(--chip);border:1px solid var(--border);border-radius:4px;padd
       <input type="file" id="importfile" accept=".json" style="display:none">
       <hr>
       <div class="menu-label">Prefs</div>
-      <button id="m-settings">⚙ Timer settings</button>
+      <button id="m-settings">⚙ Settings</button>
       <button id="m-password" style="display:none">🔑 Change password</button>
       <button id="m-usage" style="display:none">📈 My usage</button>
       <button id="m-dark">🌙 Dark mode</button>
@@ -636,7 +660,12 @@ kbd{background:var(--chip);border:1px solid var(--border);border-radius:4px;padd
       </div>
     </div>
     <div class="tm-side">
-      <label class="flabel">Due date</label><input type="datetime-local" id="t-due">
+      <label class="flabel">Due date</label>
+      <div class="due-row">
+        <input type="text" id="t-due-date" placeholder="YYYY-MM-DD" maxlength="10" inputmode="numeric" autocomplete="off" aria-label="Due date (YYYY-MM-DD)">
+        <input type="text" id="t-due-time" placeholder="HH:MM" maxlength="5" inputmode="numeric" autocomplete="off" aria-label="Due time (24-hour HH:MM)">
+        <input type="hidden" id="t-due">
+      </div>
       <p class="mut" style="margin:4px 0 0">Card color shifts from green → red as the deadline approaches.</p>
       <button id="t-gcal" style="margin-top:6px;width:100%">📅 Add to Google Calendar now</button>
       <label class="flabel">Column</label><select id="t-col"></select>
@@ -743,12 +772,15 @@ kbd{background:var(--chip);border:1px solid var(--border);border-radius:4px;padd
 
 <!-- Settings -->
 <div class="overlay" id="ov-settings"><div class="modal">
-  <h2>⚙ Timer settings<button class="ghost x" data-close>✕</button></h2>
+  <h2>⚙ Settings<button class="ghost x" data-close>✕</button></h2>
   <div class="frow">
     <div><label>Work (min)</label><input type="number" id="s-work" min="1"></div>
     <div><label>Short break</label><input type="number" id="s-short" min="1"></div>
     <div><label>Long break</label><input type="number" id="s-long" min="1"></div>
     <div><label>Long break every</label><input type="number" id="s-every" min="1"></div>
+  </div>
+  <div class="frow">
+    <div><label>Due date turns yellow (days before)</label><input type="number" id="s-duewarn" min="0" max="60"></div>
   </div>
   <div class="actions"><button class="primary" id="s-save">Save</button></div>
 </div></div>
@@ -794,7 +826,7 @@ function blankBoard(name){
     columns:[{id:uid(),name:'To-do',wip:0,done:false},{id:uid(),name:'In progress',wip:3,done:false},{id:uid(),name:'Done',wip:0,done:true}],
     lanes:[{id:l1,name:'',collapsed:false}],labels:[],tasks:[],archive:[],history:[]};
 }
-function defaultSettings(){return{dark:!!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches),work:25,short:5,long:15,every:4};}
+function defaultSettings(){return{dark:!!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches),work:25,short:5,long:15,every:4,dueWarn:2};}
 function defaultState(){
   const b=blankBoard('Main');
   const lbl={id:uid(),name:'example'};b.labels.push(lbl);
@@ -1000,17 +1032,25 @@ function el(tag,attrs={},...kids){
 function fmtMin(secs){const m=Math.round(secs/60);return Math.floor(m/60)+'h '+(m%60)+'m';}
 function taskTime(t){return (t.timeLog||[]).reduce((a,e)=>a+e.s,0);}
 function findTask(id){for(const b of state.boards){const t=b.tasks.find(x=>x.id===id);if(t)return t;}return null;}
+/* ISO 8601 date (YYYY-MM-DD) and 24-hour time (HH:MM), both in local time, regardless of browser locale */
+function fmtDate(d){return localDateKey(d instanceof Date?d.getTime():d);}
+function fmtTime(d){d=d instanceof Date?d:new Date(d);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+/* card badge: calendar days until the due date (negative when overdue), red when overdue,
+   yellow within settings.dueWarn days; full date/time in the tooltip */
 function dueInfo(t){
   if(!t.due)return null;
-  const d=new Date(t.due),now=new Date();
-  const opts={month:'short',day:'numeric'};
-  const label=d.toLocaleDateString(undefined,opts)+(t.due.includes('T')&&!t.due.endsWith('T00:00')?' '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}):'');
+  const s=String(t.due),m=s.match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/);
+  if(!m)return null;
+  const hasTime=!!m[4]&&!(m[4]==='00'&&m[5]==='00');
+  const day=new Date(+m[1],+m[2]-1,+m[3]);
+  const due=hasTime?new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5]):new Date(+m[1],+m[2]-1,+m[3],23,59,59,999);
+  const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const days=Math.round((day-today)/864e5);
+  const warn=Math.max(0,+((state.settings||{}).dueWarn??2)||0);
   let cls='';
-  const endOfToday=new Date();endOfToday.setHours(23,59,59,999);
-  if(d<now)cls='due-over';
-  else if(d<=endOfToday)cls='due-today';
-  else{const week=new Date();week.setDate(week.getDate()+7);if(d<=week)cls='due-soon';}
-  return{label,cls};
+  if(!isTaskDone(t)){if(due<now)cls='due-over';else if(days<=warn)cls='due-warn';}
+  const tip='Due '+m[1]+'-'+m[2]+'-'+m[3]+(hasTime?' '+m[4]+':'+m[5]:'')+(days===0?' (today)':days>0?' (in '+days+' day'+(days===1?'':'s')+')':' ('+(-days)+' day'+(days===-1?'':'s')+' overdue)');
+  return{label:days+'d',cls,tip};
 }
 const URGENCY_KEYS=['calm','fresh','warm','hot','over','done'];
 function urgColor(key){return getComputedStyle(document.body).getPropertyValue('--urg-'+key).trim();}
@@ -1058,11 +1098,7 @@ function fmtDoneGroupLabel(key){
   if(key===today)return'Today';
   if(key===yest)return'Yesterday';
   const [y,m,day]=key.split('-').map(Number);
-  const d=new Date(y,m-1,day);
-  const opts=d.getFullYear()===new Date().getFullYear()
-    ?{weekday:'short',month:'short',day:'numeric'}
-    :{weekday:'short',month:'short',day:'numeric',year:'numeric'};
-  return d.toLocaleDateString(undefined,opts);
+  return new Date(y,m-1,day).toLocaleDateString(undefined,{weekday:'short'})+' '+key;
 }
 /* Group done-column tasks by completion day (newest first). Open columns stay ungrouped. */
 function groupByDoneDate(tasks){
@@ -1311,7 +1347,9 @@ async function acceptSharedInvite(inviteKey){
 }
 
 /* ================= board render ================= */
-function renderAll(){renderBoardSel();renderLabelFilter();renderAssigneeFilter();updateFilterBtn();renderBoard();renderPomo();}
+function renderAll(){renderBoardSel();renderLabelFilter();renderAssigneeFilter();updateFilterBtn();renderBoard();renderPomo();ensureChatRoom();}
+/* listen to the board chat in the background so new messages raise the unread badge */
+function ensureChatRoom(){if(typeof serverMode!=='undefined'&&serverMode&&board&&callAvailable()&&!call&&(!room||room.boardId!==board.id))openRoom(board.id);}
 function updateFilterBtn(){
   const btn=$('#btn-filter');if(!btn)return;
   const n=[filter.label,filter.due,filter.assignee].filter(Boolean).length;
@@ -1556,7 +1594,7 @@ function cardEl(t){
   const badges=el('div',{class:'badges'});
   if(focusIds.has(t.id))badges.append(el('span',{class:'badge focus',text:'🎯',title:'FOCUS: top 20% by impact ÷ effort'}));
   const di=dueInfo(t);
-  if(di)badges.append(el('span',{class:'badge '+di.cls,text:'📅 '+di.label}));
+  if(di)badges.append(el('span',{class:'badge due '+di.cls,text:di.label,title:di.tip}));
   if(t.desc&&t.desc.trim())badges.append(el('span',{class:'badge',text:'📝',title:'Has a description'}));
   if(t.subtasks.length){const d=t.subtasks.filter(s=>s.done).length;badges.append(el('span',{class:'badge',text:'☑ '+d+'/'+t.subtasks.length}));}
   const tt=taskTime(t);
@@ -1797,7 +1835,7 @@ function openTask(id,colId,laneId){
   trackFeature(id?'task_open':'task_create');
   $('#t-heading').textContent=id?'Edit task':'New task';
   $('#t-title').value=t.title;$('#t-desc').value=t.desc;setTimeout(autosizeDesc,0);
-  $('#t-due').value=t.due;$('#t-est').value=t.est||'';
+  setDueFields(t.due);$('#t-est').value=t.est||'';
   $('#t-impact').value=t.impact||3;$('#t-effort').value=t.effort||3;
   $('#t-recur').value=t.recur||'';
   $('#t-time').textContent=fmtMin(taskTime(t));$('#t-addtime').value='';
@@ -1889,7 +1927,7 @@ function updateTaskHead(t){
   head.style.color=txt;
   $('#t-meta').style.color=cardTextDim();
   const col=board.columns.find(c=>c.id===colId);
-  $('#t-meta').textContent=(col?col.name:'')+(t.createdAt?' · created '+new Date(t.createdAt).toLocaleDateString():'')+(editing&&editing.isNew?' · new task':'');
+  $('#t-meta').textContent=(col?col.name:'')+(t.createdAt?' · created '+fmtDate(t.createdAt):'')+(editing&&editing.isNew?' · new task':'');
 }
 function renderLabelChips(t){
   const w=$('#t-labels');w.innerHTML='';
@@ -1925,6 +1963,140 @@ function editSub(t,s,row){
   });
   inp.addEventListener('blur',()=>finish(true));
   span.replaceWith(inp);inp.focus();inp.select();
+}
+/* Due date is typed as ISO date + 24-hour time instead of datetime-local, whose
+   display (dd/mm/yyyy, am/pm) follows the browser locale. #t-due keeps the
+   YYYY-MM-DDTHH:MM value that datetime-local used to produce. */
+function setDueFields(due){
+  const [d,tm]=(due||'').split('T');
+  $('#t-due-date').value=d||'';
+  $('#t-due-time').value=tm&&tm!=='00:00'?tm.slice(0,5):'';
+  $('#t-due-date').classList.remove('invalid');$('#t-due-time').classList.remove('invalid');
+  $('#t-due').value=due||'';
+}
+function syncDueFromFields(){
+  const dEl=$('#t-due-date'),tEl=$('#t-due-time');
+  const d=dEl.value.trim(),tm=tEl.value.trim();
+  const dOk=!d||(/^\d{4}-\d{2}-\d{2}$/.test(d)&&localDateKey(new Date(d+'T00:00').getTime())===d);
+  const tOk=!tm||/^([01]\d|2[0-3]):[0-5]\d$/.test(tm);
+  dEl.classList.toggle('invalid',!dOk);tEl.classList.toggle('invalid',!tOk);
+  if(dOk&&tOk)$('#t-due').value=d?d+'T'+(tm||'00:00'):'';
+}
+/* Accept shorthand on blur: 2026-3-5 → 2026-03-05, 930 / 9:30 → 09:30 */
+function normalizeDueFields(){
+  const dEl=$('#t-due-date'),tEl=$('#t-due-time');
+  const dm=dEl.value.trim().match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(dm)dEl.value=dm[1]+'-'+dm[2].padStart(2,'0')+'-'+dm[3].padStart(2,'0');
+  const tm=tEl.value.trim().match(/^(\d{1,2}):?(\d{2})$/);
+  if(tm)tEl.value=tm[1].padStart(2,'0')+':'+tm[2];
+  syncDueFromFields();
+}
+/* Popup pickers for the due fields. The field keeps focus while the popup is
+   open, so typing and paste still work; Esc or moving focus elsewhere closes it. */
+const duePopup=(()=>{
+  let pop=null,field=null,panel=null;
+  function close(){
+    if(!pop)return;
+    pop.remove();pop=field=panel=null;
+    window.removeEventListener('keydown',esc,true);
+    document.removeEventListener('pointerdown',outside,true);
+    document.removeEventListener('focusin',outside,true);
+  }
+  function esc(e){if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close();}}
+  function outside(e){if(pop&&e.target!==field&&!pop.contains(e.target))close();}
+  function open(f,kind,cls,onPick){
+    close();
+    field=f;pop=el('div',{class:'field-pop '+cls});
+    pop.addEventListener('mousedown',e=>e.preventDefault()); /* keep focus (and the caret) in the field */
+    f.parentNode.append(pop);
+    panel=kind(pop,f.value,v=>{close();onPick(v);},close);
+    window.addEventListener('keydown',esc,true);
+    document.addEventListener('pointerdown',outside,true);
+    document.addEventListener('focusin',outside,true);
+  }
+  const isOpenFor=f=>!!pop&&field===f;
+  const sync=f=>{if(isOpenFor(f)&&panel.sync)panel.sync(f.value);};
+  return{open,close,isOpenFor,sync};
+})();
+/* Month calendar, weeks start on Monday (ISO 8601) */
+function calendarPanel(pop,value,done){
+  const ok=v=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&localDateKey(new Date(v+'T00:00').getTime())===v;
+  let sel=ok(value)?value:'',view=new Date((sel||localDateKey(Date.now()))+'T00:00');view.setDate(1);
+  function render(){
+    const today=localDateKey(Date.now());
+    const start=new Date(view);start.setDate(1-(view.getDay()+6)%7);
+    let html='<div class="cal-head"><button type="button" data-nav="-1" title="Previous month">‹</button><span>'
+      +view.toLocaleDateString('en',{month:'long',year:'numeric'})
+      +'</span><button type="button" data-nav="1" title="Next month">›</button></div><div class="cal-grid">'
+      +['Mo','Tu','We','Th','Fr','Sa','Su'].map(d=>'<span class="wd">'+d+'</span>').join('');
+    for(let i=0;i<42;i++){
+      const d=new Date(start);d.setDate(start.getDate()+i);const k=localDateKey(d.getTime());
+      html+='<button type="button" data-d="'+k+'" class="'+(d.getMonth()!==view.getMonth()?'out ':'')+(k===today?'today ':'')+(k===sel?'sel':'')+'">'+d.getDate()+'</button>';
+    }
+    pop.innerHTML=html+'</div><div class="clock-foot"><button type="button" data-a="today">Today</button></div>';
+  }
+  pop.addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;
+    if(b.dataset.nav){view.setMonth(view.getMonth()+ +b.dataset.nav);render();}
+    else if(b.dataset.d)done(b.dataset.d);
+    else if(b.dataset.a==='today')done(localDateKey(Date.now()));
+  });
+  render();
+  return{sync(v){if(ok(v)){sel=v;view=new Date(v+'T00:00');view.setDate(1);render();}}};
+}
+/* Round 24-hour time picker (Material/Google Calendar style): pick the hour
+   on the dial (outer ring 1–12, inner ring 13–00), then the minute; drag to fine-tune. */
+function clockPanel(pop,value,done,cancel){
+  const R_OUT=88,R_IN=58,C=112;
+  const pad=n=>String(n).padStart(2,'0');
+  const pos=(i,r)=>{const a=i/12*2*Math.PI;return[C+r*Math.sin(a),C-r*Math.cos(a)];};
+  let h,m,mode='h';
+  function set(v){
+    const t=/^([01]\d|2[0-3]):([0-5]\d)$/.exec(v||'');if(!t)return false;
+    h=+t[1];m=+t[2];return true;
+  }
+  if(!set(value)){const now=new Date();h=now.getHours();m=Math.round(now.getMinutes()/5)*5%60;}
+  pop.innerHTML='<div class="clock-head"><button type="button" data-m="h"></button>:<button type="button" data-m="m"></button></div>'
+    +'<div class="clock-dial"></div><div class="clock-foot"><button type="button" data-a="cancel">Cancel</button><button type="button" class="primary" data-a="ok">OK</button></div>';
+  const dial=pop.querySelector('.clock-dial');
+  function render(){
+    pop.querySelector('[data-m=h]').textContent=pad(h);pop.querySelector('[data-m=m]').textContent=pad(m);
+    pop.querySelector('[data-m=h]').classList.toggle('on',mode==='h');pop.querySelector('[data-m=m]').classList.toggle('on',mode==='m');
+    const [hx,hy]=mode==='h'?pos(h%12,h>=1&&h<=12?R_OUT:R_IN):pos(m/5,R_OUT);
+    let html='<svg width="224" height="224"><circle cx="'+C+'" cy="'+C+'" r="3" fill="var(--accent)"/>'
+      +'<line x1="'+C+'" y1="'+C+'" x2="'+hx+'" y2="'+hy+'" stroke="var(--accent)" stroke-width="2"/>'
+      +'<circle cx="'+hx+'" cy="'+hy+'" r="16" fill="var(--accent)"/></svg>';
+    const num=(label,i,r,cls,sel)=>{const [x,y]=pos(i,r);return'<span class="num '+cls+(sel?' sel':'')+'" style="left:'+x+'px;top:'+y+'px">'+label+'</span>';};
+    if(mode==='h'){
+      for(let i=0;i<12;i++){const ho=i||12,hi=i?i+12:0;html+=num(ho,i,R_OUT,'',h===ho)+num(pad(hi),i,R_IN,'inner',h===hi);}
+    }else for(let i=0;i<12;i++)html+=num(pad(i*5),i,R_OUT,'',m===i*5);
+    dial.innerHTML=html;
+  }
+  function pickAt(e,snap){
+    const r=dial.getBoundingClientRect();
+    const x=e.clientX-r.left-C,y=e.clientY-r.top-C;
+    const a=(Math.atan2(x,-y)/(2*Math.PI)+1)%1;
+    if(mode==='h'){
+      const i=Math.round(a*12)%12,inner=Math.hypot(x,y)<(R_OUT+R_IN)/2;
+      h=inner?(i?i+12:0):(i||12);
+    }else{const step=snap?5:1;m=(Math.round(a*60/step)*step)%60;}
+    render();
+  }
+  const finish=()=>done(pad(h)+':'+pad(m));
+  pop.querySelector('[data-m=h]').onclick=()=>{mode='h';render();};
+  pop.querySelector('[data-m=m]').onclick=()=>{mode='m';render();};
+  pop.querySelector('[data-a=cancel]').onclick=cancel;
+  pop.querySelector('[data-a=ok]').onclick=finish;
+  let dragging=false,moved=false;
+  dial.addEventListener('pointerdown',e=>{dragging=true;moved=false;dial.setPointerCapture(e.pointerId);pickAt(e,true);});
+  dial.addEventListener('pointermove',e=>{if(dragging){moved=true;pickAt(e,false);}});
+  dial.addEventListener('pointerup',()=>{
+    if(!dragging)return;dragging=false;
+    if(mode==='h'){mode='m';render();}
+    else if(!moved)finish();
+  });
+  render();
+  return{sync(v){if(set(v))render();}};
 }
 function saveTaskModal(){
   const t=editing.task;
@@ -1986,6 +2158,7 @@ function notifyNewAssignees(task,prevAssignees){
 function openOv(sel){closeOv();$(sel).classList.add('open');}
 function closeOv(){
   $$('.overlay.open').forEach(o=>o.classList.remove('open'));
+  duePopup.close();
   if(typeof flushPendingRemote==='function')flushPendingRemote();
 }
 
@@ -2241,8 +2414,10 @@ function renderPomo(){
   box.id='pomo';
   /* the browser tab shows the countdown while a timer runs */
   const title=(tm&&running)?(m+':'+sx+' '+(mode==='stopwatch'?'\u23f1':(phase==='work'?'\ud83c\udf45':'\u2615'))+(t?' '+t.title:'')+' \u00b7 FlowBoard'):BASE_TITLE;
-  if(document.title!==title)document.title=title;
+  const full=chatTitlePrefix()+title;
+  if(document.title!==full)document.title=full;
 }
+function chatTitlePrefix(){return (typeof chatUnread!=='undefined'&&chatUnread>0)?'('+chatUnread+') ':'';}
 function beep(){
   try{
     const ctx=new (window.AudioContext||window.webkitAudioContext)();
@@ -2285,7 +2460,7 @@ function setPanelView(v){
   const p=callPanel();if(!p)return;
   p.dataset.view=v;p.classList.remove('min');
   $$('#cp-tabs button').forEach(b=>b.classList.toggle('sel',b.dataset.view===v));
-  if(v==='chat'){chatUnread=0;updateChatBtn();renderChat();setTimeout(()=>{const i=$('#cp-chatin');if(i&&innerWidth>640)i.focus();},50);}
+  if(v==='chat'){if('Notification'in window&&Notification.permission==='default')Notification.requestPermission();chatUnread=0;updateChatBtn();renderChat();setTimeout(()=>{const i=$('#cp-chatin');if(i&&innerWidth>640)i.focus();},50);}
   if(v==='people')renderPeople();
 }
 function showCallPanel(view){
@@ -2298,7 +2473,6 @@ function showCallPanel(view){
 function hideCallPanel(){
   const p=callPanel();if(!p)return;
   p.classList.add('hidden');
-  if(!call)closeRoom();
   updateCallBtn();
 }
 /* ---------- header buttons, ringing, banner ---------- */
@@ -2330,6 +2504,7 @@ function updateChatBtn(){
   b.style.display='';
   b.classList.toggle('unread',chatUnread>0);
   b.textContent=chatUnread>0?('💬 '+chatUnread):'💬';
+  const t=chatTitlePrefix()+document.title.replace(/^\(\d+\) /,'');if(document.title!==t)document.title=t;
   b.title=chatUnread>0?(chatUnread+' new chat message'+(chatUnread>1?'s':'')):'Board chat (share links, notes)';
 }
 function updateCallRingers(){
@@ -2411,7 +2586,7 @@ function openRoom(boardId){
   if(room&&room.boardId===boardId)return;
   closeRoom();
   room={ws:null,boardId,pid:null,peerId:String(deviceId).slice(0,8)+'-'+uid().slice(0,6),pingTimer:null,reconnectTimer:null};
-  chatLog=[];roomPeople=[];renderChat();
+  chatLog=[];roomPeople=[];chatUnread=0;updateChatBtn();renderChat();
   connectRoom();
 }
 function connectRoom(){
@@ -2505,8 +2680,8 @@ function linkify(text){
 }
 function fmtChatTime(at){
   const d=new Date(at||0),now=new Date();
-  const hm=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  return d.toDateString()===now.toDateString()?hm:d.toLocaleDateString([],{day:'numeric',month:'short'})+' '+hm;
+  const hm=fmtTime(d);
+  return d.toDateString()===now.toDateString()?hm:fmtDate(d)+' '+hm;
 }
 function renderChat(){
   const box=$('#cp-msgs');if(!box)return;
@@ -3136,7 +3311,7 @@ function openArchive(){
   board.archive.slice().reverse().forEach(t=>{
     w.append(el('div',{class:'prow'},
       el('span',{class:'nm',text:t.title}),
-      el('span',{class:'mut',text:t.doneAt?new Date(t.doneAt).toLocaleDateString():''}),
+      el('span',{class:'mut',text:t.doneAt?fmtDate(t.doneAt):''}),
       el('button',{text:'Restore',onclick:()=>{board.archive.splice(board.archive.indexOf(t),1);t.colId=board.columns[0].id;t.laneId=board.lanes[0].id;board.tasks.push(t);save();renderBoard();openArchive();}}),
       el('button',{class:'danger',text:'✕',onclick:()=>{if(confirm('Delete forever?')){deleteTaskFiles(t);board.archive.splice(board.archive.indexOf(t),1);save();openArchive();}}})));
   });
@@ -3225,7 +3400,8 @@ let syncHandle=null,syncPollTimer=null,syncWriteTimer=null,lastSyncMod=0,applyin
 const FSA=!!(window.showSaveFilePicker&&window.showOpenFilePicker);
 function syncBtn(mode){
   const b=$('#sync-btn');
-  if(serverMode){b.style.display='';b.dataset.mode='server';b.textContent=serverAlive?'🟢 Live sync':'📴 Offline, changes saved, will auto-sync';return;}
+  if(serverMode){b.style.display='';b.dataset.mode='server';b.textContent=serverAlive?((offlineReady?'🔵':'🟢')+' Live sync'):'📴 Offline, changes saved, will auto-sync';b.title=offlineReady?'This browser has a copy of FlowBoard and opens it without the server':'Offline copy not ready yet: reload once while online';return;}
+  if(typeof offlineStart!=='undefined'&&offlineStart){b.style.display='';b.dataset.mode='server';b.textContent='📴 Offline, changes saved, will auto-sync';return;}
   if(!syncHandle){b.style.display='none';return;}
   b.style.display='';
   b.textContent=mode==='reconnect'?'🔗 Reconnect sync':(mode==='error'?'⚠ Sync error, click to retry':'🟢 Synced');
@@ -3387,6 +3563,9 @@ let serverMode=false,serverAlive=false,serverPushTimer=null;
 let timerPushPending=false; /* a local change is queued or in flight: the server's timer is older than ours */
 let pendingRemote=null; /* remote state deferred while a task dialog is open / drag in progress */
 let baseServerAt=0; /* last server updatedAt we adopted (detect concurrent edits) */
+try{baseServerAt=+localStorage.getItem('flowboard.serverAt')||0;}catch(e){}
+/* persisted: after a reload, state.updatedAt>baseServerAt means this device has edits the server has not seen */
+function setBaseServerAt(v){baseServerAt=Math.max(baseServerAt,v||0);try{localStorage.setItem('flowboard.serverAt',String(baseServerAt));}catch(e){}}
 let serverHydrated=false; /* true after this session loaded/confirmed cloud state — blocks stale localStorage from overwriting the server */
 let saasUser=null;
 let saasModeLogin=true; /* lock form: true=login (default), false=signup */
@@ -3514,7 +3693,7 @@ function mergeRemoteIntoState(data){
   }
   board=state.boards.find(b=>b.id===state.activeBoard)||state.boards[0];
   state.activeBoard=board.id;
-  baseServerAt=Math.max(baseServerAt,remoteAt);
+  setBaseServerAt(remoteAt);
   saveQuiet();
   applyingRemote=false;
   return true;
@@ -3540,7 +3719,7 @@ function forceAdoptRemote(data){
   pendingRemote=null;
   state.boards=fixed.boards;
   state.updatedAt=fixed.updatedAt;
-  baseServerAt=Math.max(baseServerAt,fixed.updatedAt||0);
+  setBaseServerAt(fixed.updatedAt||0);
   serverHydrated=true;
   if(Object.prototype.hasOwnProperty.call(data,'timer')){
     state.timer=(data.timer&&typeof data.timer==='object')?data.timer:null;
@@ -3612,7 +3791,7 @@ function adoptRemote(data){
   if(!fixed)return;
   applyingRemote=true;
   state.boards=fixed.boards;state.updatedAt=fixed.updatedAt;
-  baseServerAt=Math.max(baseServerAt,fixed.updatedAt||0);
+  setBaseServerAt(fixed.updatedAt||0);
   serverHydrated=true;
   /* Timer is per-account/device group from the server — never take a friend's timer */
   if(Object.prototype.hasOwnProperty.call(data,'timer')){
@@ -3668,7 +3847,7 @@ function ensureTermsAccepted(){
 function afterServerReady(){
   hideLock();
   serverMode=true;serverAlive=true;
-  updateCallBtn();updateChatBtn();
+  updateCallBtn();updateChatBtn();ensureChatRoom();
   setTimeout(()=>handlePendingCallLink(0),800);
   ['m-synccreate','m-syncjoin','m-syncoff'].forEach(id=>{const n=document.getElementById(id);if(n)n.style.display='none';});
   if(SAAS){
@@ -3711,10 +3890,9 @@ function withTimeout(promise,ms,label){
     new Promise((_,rej)=>setTimeout(()=>rej(new Error(label||'timeout')),ms))
   ]);
 }
-async function initServer(){
+async function initServer(retry){
   if(location.protocol!=='http:'&&location.protocol!=='https:')return;
-  setupLockUi();
-  showLock('');
+  if(!retry){setupLockUi();showLock('');}
   const LOAD_MS=12000;
   if(SAAS){
     /* Invite link + logged-in account → mount into their boards list */
@@ -3784,21 +3962,34 @@ async function initServer(){
     return;
   }
   try{
-    const r=await withTimeout(apiFetch('api/state',{cache:'no-store'}),LOAD_MS,'state');
+    const r=await withTimeout(apiFetch('api/state',{cache:'no-store'}),retry?8000:LOAD_MS,'state');
     if(r.status===401){
+      offlineStart=false;
       showLock(boardKey?'That key is not valid. It may have been revoked.':'');
       return;
     }
-    if(!r.ok){hideLock();return;}
-    afterServerReady();
+    if(!r.ok)throw new Error('http '+r.status);
     const remote=await r.json().catch(()=>null);
-    if(remote&&remote.boards&&remote.boards.length)forceAdoptRemote(remote);
+    offlineStart=false;clearTimeout(offlineRetryTimer);
+    afterServerReady();
+    if(remote&&remote.boards&&remote.boards.length){
+      /* edits made while the server was unreachable (offline start, or tab closed before sync): union, then push */
+      if(baseServerAt>0&&(state.updatedAt||0)>baseServerAt){
+        mergeRemoteIntoState(remote);serverHydrated=true;renderAll();renderPresence();scheduleServerPush();
+      }else forceAdoptRemote(remote);
+    }
     else scheduleServerPush();
   }catch(e){
-    if(e&&e.message==='state')showLock('Connection timed out. Check your network and try again.');
-    else hideLock();
+    /* server unreachable: keep working on the local copy (needs a stored key) and retry */
+    if(!boardKey&&!retry){showLock(e&&e.message==='state'?'Connection timed out. Check your network and try again.':'Server not reachable. Check your network and try again.');return;}
+    hideLock();
+    offlineStart=true;syncBtn();
+    clearTimeout(offlineRetryTimer);
+    offlineRetryTimer=setTimeout(()=>initServer(true),10000);
   }
 }
+let offlineStart=false,offlineRetryTimer=null;
+window.addEventListener('online',()=>{if(offlineStart){clearTimeout(offlineRetryTimer);initServer(true);}});
 async function tryUnlock(){
   if(SAAS)return trySaasAuth();
   const k=$('#lock-key').value.trim();
@@ -4031,7 +4222,7 @@ function scheduleServerPush(){
               }else if(remoteAt>localAt){
                 adoptRemote(remote);
               }else{
-                baseServerAt=Math.max(baseServerAt,remoteAt);
+                setBaseServerAt(remoteAt);
               }
             }
           }
@@ -4050,7 +4241,7 @@ function scheduleServerPush(){
       serverAlive=r.ok;
       if(r.ok)timerPushPending=false;
       if(r.ok&&!isViewingShared()){
-        baseServerAt=Math.max(baseServerAt,state.updatedAt||0);
+        setBaseServerAt(state.updatedAt||0);
         serverHydrated=true;
       }
     }catch(e){serverAlive=false;}
@@ -4315,14 +4506,16 @@ function bind(){
   $('#m-settings').onclick=()=>{
     $('#s-work').value=state.settings.work;$('#s-short').value=state.settings.short;
     $('#s-long').value=state.settings.long;$('#s-every').value=state.settings.every;
+    $('#s-duewarn').value=state.settings.dueWarn??2;
     openOv('#ov-settings');
   };
   $('#s-save').onclick=()=>{
     state.settings.work=+$('#s-work').value||25;state.settings.short=+$('#s-short').value||5;
     state.settings.long=+$('#s-long').value||15;state.settings.every=+$('#s-every').value||4;
+    {const w=parseInt($('#s-duewarn').value,10);state.settings.dueWarn=isNaN(w)?2:Math.max(0,Math.min(60,w));}
     const tmS=curTimer();
     if(tmS&&!tmS.running&&tmS.mode==='pomodoro'&&tmS.phase==='work')tmS.remainMs=state.settings.work*60000;
-    save();renderPomo();closeOv();
+    save();renderPomo();renderBoard();closeOv();
   };
   /* pomodoro. Start/stop only (no pause or skip) */
   $('#pomo-start').onclick=()=>startTimer();
@@ -4343,13 +4536,14 @@ function bind(){
     /* iOS sometimes drops click after keyboard dismiss; pointerup still lands on the button */
     if(e.pointerType==='touch'||e.pointerType==='pen')tapSaveTask(e);
   });
-  /* Enter saves & closes when dirty; closes only when unchanged. Capture so datetime-local can't swallow it. */
+  /* Enter saves & closes when dirty; closes only when unchanged. Capture so the due fields can't swallow it. */
   $('#ov-task').addEventListener('keydown',e=>{
     if(e.key!=='Enter'||e.ctrlKey||e.metaKey||e.altKey||!editing)return;
     const t=e.target;if(!t||!t.matches)return;
     if(t.id==='t-desc'||t.id==='t-newsub'||t.tagName==='TEXTAREA'||t.classList.contains('sub-edit'))return;
     if(t.tagName==='BUTTON'&&t.id!=='t-save')return;
     if(t.id==='t-save'){e.preventDefault();e.stopPropagation();saveTaskModal();return;}
+    if(t.id==='t-due-date'||t.id==='t-due-time')normalizeDueFields();
     if(t.matches('input,select')||t.closest('.task-modal')){
       e.preventDefault();e.stopPropagation();commitTaskModal();
     }
@@ -4360,7 +4554,7 @@ function bind(){
     const modal=ov&&ov.querySelector('.task-modal');
     if(!ov||!modal||!window.visualViewport)return;
     const fit=()=>{
-      if(!ov.classList.contains('open')){
+      if(!ov.classList.contains('open')||!matchMedia('(max-width:640px)').matches){
         modal.style.height='';modal.style.maxHeight='';
         return;
       }
@@ -4402,11 +4596,30 @@ function bind(){
   });
   $('#t-desc').addEventListener('input',renderDescLinks);
   $('#t-desc').addEventListener('input',autosizeDesc);
-  $('#t-due').addEventListener('input',()=>{if(editing)updateTaskHead(editing.task);});
-  $('#t-due').addEventListener('change',()=>{
+  const afterDuePick=next=>{
+    syncDueFromFields();
     if(editing)updateTaskHead(editing.task);
-    /* After the date picker commits, put focus on Add/Save so Enter activates it */
-    const btn=$('#t-save');if(btn)try{btn.focus();}catch(err){}
+    if(next)try{next.focus();}catch(err){}
+  };
+  const openDuePicker={
+    '#t-due-date':f=>duePopup.open(f,calendarPanel,'cal',v=>{
+      f.value=v;
+      /* Next: the time (unless already set), then Add/Save */
+      afterDuePick($('#t-due-time').value?$('#t-save'):$('#t-due-time'));
+    }),
+    '#t-due-time':f=>duePopup.open(f,clockPanel,'clock',v=>{
+      f.value=v;
+      if(!$('#t-due-date').value)$('#t-due-date').value=localDateKey(Date.now());
+      afterDuePick($('#t-save'));
+    })
+  };
+  ['#t-due-date','#t-due-time'].forEach(sel=>{
+    const f=$(sel);
+    f.addEventListener('input',()=>{syncDueFromFields();duePopup.sync(f);if(editing)updateTaskHead(editing.task);});
+    f.addEventListener('change',()=>{normalizeDueFields();duePopup.sync(f);if(editing)updateTaskHead(editing.task);});
+    /* Clicking into the field (or tabbing to it) pops the picker; a click after Esc reopens it */
+    f.addEventListener('focus',()=>openDuePicker[sel](f));
+    f.addEventListener('click',()=>{if(!duePopup.isOpenFor(f))openDuePicker[sel](f);});
   });
   $('#t-col').addEventListener('change',()=>{if(editing)updateTaskHead(editing.task);});
   $('#t-addsub').onclick=addSub;
@@ -4493,6 +4706,21 @@ snapshot();saveQuiet();
 renderAll();
 initSync();
 initServer();
+/* offline start: the service worker (served by flowboard-server.js) keeps a copy of this page */
+var offlineReady=false;
+async function checkOfflineReady(){
+  try{
+    /* ready = an active service worker plus a cached page; a hard reload (Ctrl+F5) bypasses the worker for that load but the offline copy still exists */
+    const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();
+    offlineReady=!!(reg&&reg.active&&window.caches&&await caches.match(location.origin+'/'));
+  }catch(e){offlineReady=false;}
+  syncBtn();
+}
+if('serviceWorker'in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
+  checkOfflineReady(); /* already cached on later visits: blue right away, no green flash */
+  navigator.serviceWorker.addEventListener('controllerchange',checkOfflineReady);
+  navigator.serviceWorker.register('sw.js').then(()=>setTimeout(checkOfflineReady,1500)).catch(()=>{}); /* first visit */
+}
 /* recover from IndexedDB backup if it is newer (e.g. After a localStorage-quota failure).
    Skip on live-sync URLs: an old IDB snapshot must not resurrect a stale 200-To-do board over the cloud. */
 (async()=>{
